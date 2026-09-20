@@ -4,7 +4,11 @@ A standalone browser card-battle RPG with original retro pixel artwork. Open `in
 
 ## Preview status
 
-This is an **unverified preview**. Offline DOM/logic checks passed for customization, deck selection, card limits, combat calculations, rewards, deck improvements, save serialization, and defeat recovery. Sprite renders were inspected. A full real-browser playthrough remains pending; offline checks do not establish that the complete interface works.
+The core gameplay loop was playtested in desktop Chrome on 2026-09-20 at https://lelik827.github.io/Cardbound/.
+
+Verified through normal UI controls: all customization options, repeated card picks/removal/copy cap, Balanced starter, entering the world, directional-pad movement and tree collision, two monster victories, attack/block/mana/draw behavior, reward selection, earned-card removal and re-addition, use of Blood Pact in the second battle, and save/reload with restored name, appearance, XP, gold, and quest progress. No game-origin errors were observed in captured browser logs.
+
+The playtest found a stale Continue saved adventure control inside character editing; the follow-up fix removes it after adventure entry. Mobile layout, keyboard hold behavior, defeat recovery, and the final boss still need browser testing. Offline logic checks also passed. This remains a preview, not an assurance that every path works.
 
 ## Hosting
 
