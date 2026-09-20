@@ -1,0 +1,505 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cardbound — Crystalwood Edition</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Georgia,serif;background:#13251b;color:#fff}
+#game{position:fixed;inset:0;width:100%;height:100%;background:#75a957}
+svg{display:block;width:100%;height:100%}
+#hud{position:fixed;top:14px;left:14px;z-index:20;width:260px;background:rgba(22,31,26,.9);border:2px solid #d9bf6c;border-radius:12px;padding:10px 13px;box-shadow:0 6px 18px #0006}
+.bar{height:13px;border-radius:8px;background:#352c2b;overflow:hidden;margin:4px 0}.hp{height:100%;background:#dc5547}.mana{height:100%;background:#4c9cda}
+#menu{position:fixed;top:14px;right:14px;z-index:20;display:flex;gap:8px}
+button{font:inherit;border:2px solid #b99b50;border-radius:9px;padding:8px 12px;background:#294634;color:#fff;cursor:pointer}
+button:hover{background:#3a6248}.small{font-size:13px;color:#ddd}
+#hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:20;background:rgba(22,31,26,.9);border:2px solid #d9bf6c;border-radius:10px;padding:8px 14px}
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(8,17,12,.86);display:flex;align-items:center;justify-content:center}
+.modal{width:min(900px,94vw);max-height:92vh;overflow:auto;background:#efe4c5;color:#28251f;border:4px solid #a78239;border-radius:18px;padding:22px;box-shadow:0 20px 60px #000}
+.modal h1,.modal h2{margin:0 0 8px;color:#405b37}
+.creatorLayout{display:grid;grid-template-columns:300px 1fr;gap:20px}
+.preview{background:#c8b77e;border-radius:14px;display:flex;align-items:center;justify-content:center;min-height:330px}
+.optionTitle{font-weight:bold;margin:9px 0 4px}.choices{display:flex;gap:7px;flex-wrap:wrap}
+.opt{background:#f7efd9;color:#28251f;border-color:#b7a576}.opt.sel{outline:3px solid #668e4e;background:#dcebcf}
+.color{width:42px;height:36px;padding:0}.face{min-width:75px}
+input{font:inherit;padding:9px;border:1px solid #9e8b61;border-radius:7px}
+#deckGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:15px}.deckcard{min-height:118px;text-align:left;background:#f8f0db;color:#28251f;display:flex;flex-direction:column;justify-content:space-between}.deckcard.sel{background:#dbe9ce;border-color:#547b45}.qty{font-size:18px;font-weight:bold;margin:0 5px;min-width:30px;text-align:center}.qtyrow{display:flex;align-items:center;justify-content:center;margin-top:8px}.qtybtn{padding:5px 9px;min-width:36px}.collectionNote{margin-top:10px;padding:9px 11px;border-radius:9px;background:#e2d4ae;color:#51482f;font-size:13px}
+#battle .modal{background:#202b26;color:white;border-color:#d0b45c}#battleGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.battleInfo{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:14px;margin:8px 0}.handTitle{margin-top:12px;font-weight:bold}.handEmpty{grid-column:1/-1;text-align:center;padding:18px;color:#c9d0ca;background:#ffffff0a;border-radius:8px}
+.combatants{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0 12px}.combatant{padding:13px;border:2px solid #625b43;border-radius:12px;background:#151c18}.combatant.player{border-color:#557b91}.combatant.enemy{border-color:#8e5149}.combatLabel{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#b9c1b9}.combatName{font-size:19px;font-weight:bold;margin:2px 0 5px}.combatHp{font-size:28px;font-weight:bold;line-height:1}.combatBar{height:18px;border-radius:10px;background:#392522;overflow:hidden;margin-top:7px}.combatBar>div{height:100%;transition:width .18s ease}.combatPlayerFill{background:#d35d52}.combatEnemyFill{background:#c97851}.combatSub{font-size:12px;color:#cbd1cb;margin-top:5px}.passHint{font-size:12px;color:#aeb7af}
+#log{height:100px;overflow:auto;background:#0004;padding:8px;border-radius:8px;margin:10px 0;font-size:14px}
+
+@media(max-width:700px){.creatorLayout{grid-template-columns:1fr}.preview{min-height:230px}#deckGrid,#battleGrid{grid-template-columns:repeat(2,1fr)}#hud{width:220px;font-size:13px}}
+</style>
+</head>
+<body>
+<div id="game">
+<svg id="world" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-label="Forest world">
+<defs>
+<pattern id="grass" width="48" height="48" patternUnits="userSpaceOnUse"><rect width="48" height="48" fill="#74a653"/><rect width="24" height="24" fill="#78aa57"/><rect x="24" y="24" width="24" height="24" fill="#78aa57"/></pattern>
+<filter id="shadow"><feGaussianBlur stdDeviation="3"/></filter>
+</defs>
+<rect width="1200" height="800" fill="url(#grass)"/>
+<g id="worldLayer"></g>
+</svg>
+</div>
+
+<div id="hud">
+ <b id="heroName">Adventurer</b> · Lv <span id="level">1</span>
+ <div class="small">Health <span id="hpText">30/30</span></div><div class="bar"><div id="hpFill" class="hp" style="width:100%"></div></div>
+ <div class="small">Mana <span id="manaText">10/10</span></div><div class="bar"><div id="manaFill" class="mana" style="width:100%"></div></div>
+ <div class="small">XP <span id="xpText">0/30</span> · Gold <span id="goldText">0</span></div>
+</div>
+<div id="menu"><button id="deckBtn">Deck</button><button id="characterBtn">Character</button><button id="resetBtn">Reset</button></div>
+<div id="hint">WASD / Arrow Keys · Explore the forest</div>
+
+<div id="creator" class="overlay">
+<div class="modal">
+ <h1>Cardbound</h1><p>Create your adventurer. Your character is shown live on the left.</p>
+ <div class="creatorLayout">
+  <div class="preview"><svg viewBox="0 0 220 300" width="230" height="300"><ellipse cx="110" cy="270" rx="48" ry="13" fill="#557043"/>
+   <rect x="88" y="188" width="18" height="70" rx="8" fill="#4b382d"/><rect x="114" y="188" width="18" height="70" rx="8" fill="#4b382d"/>
+   <rect id="pbody" x="70" y="125" width="80" height="80" rx="25" fill="#315c3c"/>
+   <circle id="phead" cx="110" cy="92" r="43" fill="#dca47d"/>
+   <path id="phair" d="M67 94 Q70 45 110 45 Q150 45 153 94 L143 80 L132 68 L119 82 L106 65 L91 81 L77 70 Z" fill="#3b2518"/>
+   <circle id="pe1" cx="96" cy="94" r="5" fill="#3a6f9e"/><circle id="pe2" cx="124" cy="94" r="5" fill="#3a6f9e"/>
+   <path id="pface" d="M96 111 Q110 120 124 111" fill="none" stroke="#633d31" stroke-width="3"/>
+   <line x1="145" y1="185" x2="181" y2="151" stroke="#e5e0d4" stroke-width="8" stroke-linecap="round"/>
+  </svg></div>
+  <div>
+   <label>Name</label><br><input id="nameInput" maxlength="18" value="Adventurer">
+   <div class="optionTitle">Gender</div><div class="choices" id="genderChoices"></div>
+   <div class="optionTitle">Skin</div><div class="choices" id="skinChoices"></div>
+   <div class="optionTitle">Hair</div><div class="choices" id="hairChoices"></div>
+   <div class="optionTitle">Eyes</div><div class="choices" id="eyeChoices"></div>
+   <div class="optionTitle">Face</div><div class="choices" id="faceChoices"></div>
+   <div class="optionTitle">Outfit</div><div class="choices" id="outfitChoices"></div>
+   <div style="text-align:right;margin-top:16px"><button id="creatorNext">Continue →</button></div>
+  </div>
+ </div>
+</div></div>
+
+<div id="deck" class="overlay" style="display:none"><div class="modal">
+<h2 id="deckTitle">Choose Your Starting Cards</h2><p id="deckIntro">Choose <b>10 cards</b> to begin your adventure. You can later grow your deck to <b>30 cards</b> when monsters drop new cards.</p><div id="deckGrid"></div><div class="collectionNote"><b>Starting deck:</b> <span id="picked">0</span>/10 · <b>Deck limit:</b> 30 · Up to 3 copies of a card.</div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:15px"><b id="deckStatus">Pick 10 cards to begin.</b><button id="beginAdventure" disabled>Begin Adventure</button></div>
+</div></div>
+
+<div id="battle" class="overlay" style="display:none"><div class="modal">
+<h2>Battle</h2><div class="combatants"><div class="combatant player"><div class="combatLabel">You</div><div class="combatName" id="battleHeroName">Adventurer</div><div class="combatHp" id="battlePlayerHp">30/30</div><div class="combatBar"><div id="battlePlayerFill" class="combatPlayerFill" style="width:100%"></div></div><div class="combatSub">Block: <b id="battlePlayerBlock">0</b></div></div><div class="combatant enemy"><div class="combatLabel">Enemy</div><div class="combatName" id="enemyTitle">Monster</div><div class="combatHp" id="enemyHp">0/0</div><div class="combatBar"><div id="enemyFill" class="combatEnemyFill" style="width:100%"></div></div><div class="combatSub">Attack: <b id="enemyAttackPreview">2–4</b></div></div></div>
+<div class="battleInfo"><span>Turn <b id="turnText">1</b></span><span>Mana <b id="battleMana">10</b>/10</span><span>Deck <b id="deckCountText">0</b>/30</span><span>Draw <b id="drawText">0</b> · Discard <b id="discardText">0</b></span></div>
+<div id="log"></div><div class="handTitle">Hand — draw 2 each turn</div><div id="battleGrid"></div>
+<div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+ <span class="passHint">Play as many cards as you want, then pass to end your turn and draw 2.</span><button id="passTurn">Pass &amp; Draw 2</button>
+ <button id="battleReturn" style="display:none">Return to World</button>
+</div>
+</div></div>
+
+<script>
+const NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const choice=a=>a[Math.floor(Math.random()*a.length)];
+
+const cardData=[
+['Ember Strike','Attack',3,5,'Deal 5 damage.'],['Quick Jab','Attack',2,3,'Deal 3 damage.'],
+['Heavy Swing','Attack',5,8,'Deal 8 damage.'],['Arcane Spark','Attack',4,6,'Deal 6 damage.'],
+['Twin Slash','Attack',4,7,'Deal 7 damage.'],['Guard','Defense',2,5,'Block 5 damage.'],
+['Shield Wall','Defense',4,8,'Block 8 damage.'],['Dodge','Defense',1,3,'Block 3 damage.'],
+['Iron Guard','Defense',3,6,'Block 6 damage.'],['Second Wind','Defense',4,5,'Heal 5 health.'],
+['Blood Pact','Attack',6,11,'Deal 11 damage. Lose 2 health.'],['Thornskin','Defense',3,7,'Block 7 damage.'],
+['Moon Mend','Defense',5,8,'Heal 8 health.'],['Flame Burst','Attack',7,12,'Deal 12 damage.'],
+['Rally','Defense',2,4,'Block 4 damage and draw 1 card.'],['Executioner','Attack',8,16,'Deal 16 damage.']
+].map((x,i)=>({id:i,name:x[0],type:x[1],cost:x[2],power:x[3],desc:x[4]}));
+
+let hero={name:'Adventurer',gender:'Male',skin:'#dca47d',hair:'#3b2518',eyes:'#3a6f9e',face:'Round',outfit:'#315c3c'};
+let stats={level:1,xp:0,gold:0,hp:30,maxHp:30};
+const MAX_DECK=30, STARTING_DECK=10, MAX_COPIES=3, DRAW_PER_TURN=2, CARD_DROP_CHANCE=.12;
+let deck=[];
+let collection=cardData.reduce((acc,c)=>{if(c.id<10)acc[c.id]=3;return acc},{});
+let deckBuildMode='start';
+let started=false,battleState=null;
+let player={x:600,y:400}, worldOffset={x:0,y:0}, keys={};
+
+const opts={
+ gender:['Male','Female'],skin:['#f0c8a8','#dca47d','#ae7657','#754b39'],
+ hair:['#3b2518','#171717','#b66a2b','#d5b46a','#8b3e35'],
+ eyes:['#3a6f9e','#4b8a48','#6b4d32','#66707a'],face:['Round','Brave','Calm','Focused'],
+ outfit:['#315c3c','#3d5688','#7a3e3e','#806334','#5d467b']
+};
+function renderOptions(){
+ const map={gender:'genderChoices',skin:'skinChoices',hair:'hairChoices',eyes:'eyeChoices',face:'faceChoices',outfit:'outfitChoices'};
+ for(const k in map){const el=$(map[k]);el.innerHTML='';opts[k].forEach(v=>{
+  const b=document.createElement('button');b.className='opt'+(hero[k]===v?' sel':'');
+  if(['skin','hair','eyes','outfit'].includes(k)){b.classList.add('color');b.style.background=v;b.title=v}
+  else {b.textContent=v}
+  b.onclick=()=>{hero[k]=v;renderOptions();updatePreview()};el.appendChild(b);
+ })}
+}
+function updatePreview(){
+ $('phead').setAttribute('fill',hero.skin);$('phair').setAttribute('fill',hero.hair);
+ $('pe1').setAttribute('fill',hero.eyes);$('pe2').setAttribute('fill',hero.eyes);$('pbody').setAttribute('fill',hero.outfit);
+ let face=$('pface'); const paths={Round:'M96 111 Q110 120 124 111',Brave:'M96 112 L124 112',Calm:'M96 112 Q110 106 124 112',Focused:'M96 115 L110 107 L124 115'};
+ face.setAttribute('d',paths[hero.face]); $('phead').setAttribute('r',hero.gender==='Female'?41:43);
+}
+renderOptions();updatePreview();
+
+$('creatorNext').onclick=()=>{hero.name=($('nameInput').value||'').trim()||'Adventurer';$('creator').style.display='none';deckBuildMode='start';renderDeck()};
+function renderDeck(){
+ const total=deck.length, target=deckBuildMode==='start'?STARTING_DECK:MAX_DECK;
+ $('deck').style.display='flex';$('deckTitle').textContent=deckBuildMode==='start'?'Choose Your Starting Cards':'Manage Your Deck';
+ $('deckIntro').innerHTML=deckBuildMode==='start'?'Choose <b>10 cards</b> to begin. Monsters have a small chance to drop cards that expand your collection and deck.':'Build and tune your deck up to <b>30 cards</b>. You can only use copies you own.';
+ $('deck').style.display='flex';$('picked').textContent=total;
+ $('beginAdventure').textContent=deckBuildMode==='start'?'Begin Adventure':'Close Deck';
+ $('beginAdventure').disabled=deckBuildMode==='start' ? total!==STARTING_DECK : false;
+ $('deckStatus').textContent=deckBuildMode==='start' ? (total===STARTING_DECK?'Ready to begin!':'Pick '+(STARTING_DECK-total)+' more card'+(STARTING_DECK-total===1?'':'s')+'.') : ('Cards: '+total+'/30 · Owned copies can be used up to 3 per card.');
+ $('deckGrid').innerHTML='';
+ cardData.filter(c=>(collection[c.id]||0)>0).forEach(c=>{
+   const count=deck.filter(x=>x===c.id).length;
+   const b=document.createElement('div'); b.className='deckcard'+(count?' sel':'');
+   b.innerHTML='<div><b>'+c.name+'</b><br><small>'+c.type+' · '+c.cost+' mana</small><br><small>'+c.desc+'</small></div>';
+   const row=document.createElement('div');row.className='qtyrow';
+   const minus=document.createElement('button');minus.type='button';minus.className='qtybtn';minus.textContent='−';minus.setAttribute('aria-label','Remove one '+c.name);
+   const qty=document.createElement('span');qty.className='qty';qty.textContent=count;
+   const plus=document.createElement('button');plus.type='button';plus.className='qtybtn';plus.textContent='+';plus.setAttribute('aria-label','Add one '+c.name);
+   minus.disabled=count===0; plus.disabled=count>=Math.min(MAX_COPIES,collection[c.id]||0)||total>=target;
+   minus.onclick=()=>{const i=deck.indexOf(c.id);if(i>=0)deck.splice(i,1);renderDeck()};
+   plus.onclick=()=>{if(count<MAX_COPIES&&deck.length<MAX_DECK)deck.push(c.id);renderDeck()};
+   row.append(minus,qty,plus);b.appendChild(row);$('deckGrid').appendChild(b)
+ })
+}
+$('beginAdventure').onclick=()=>{if(deckBuildMode==='start' && deck.length===STARTING_DECK){$('deck').style.display='none';startWorld()}else if(deckBuildMode==='manage'){$('deck').style.display='none'}};
+$('deckBtn').onclick=()=>{if(battleState)return;deckBuildMode='manage';renderDeck()};
+$('characterBtn').onclick=()=>{$('creator').style.display='flex';renderOptions();updatePreview()};
+$('resetBtn').onclick=()=>{localStorage.clear();location.reload()};
+
+function el(tag,attrs={}){const n=document.createElementNS(NS,tag);for(const k in attrs)n.setAttribute(k,attrs[k]);return n}
+function add(parent,tag,attrs){const n=el(tag,attrs);parent.appendChild(n);return n}
+
+const layer=$('worldLayer');
+const landmarks=[{x:600,y:400,type:'village',name:'Meadowrest Village'},{x:260,y:180,type:'shrine',name:'Forest Shrine'},{x:930,y:190,type:'lake',name:'Moonleaf Pond'},{x:930,y:650,type:'ruins',name:'Sunken Ruins'},{x:220,y:650,type:'grove',name:'Whispering Grove'}];
+let trees=[],monsters=[];
+function startWorld(){
+ started=true;player={x:600,y:400};trees=[];monsters=[];layer.innerHTML='';
+ drawMap();for(let i=0;i<35;i++)spawnTree();for(let i=0;i<8;i++)spawnMonster();drawWorld();updateHUD();requestAnimationFrame(loop)
+}
+function drawMap(){
+ // broad paths
+ const paths=[[600,400,260,180],[600,400,930,190],[600,400,930,650],[600,400,220,650]];
+ paths.forEach(p=>add(layer,'path',{d:`M${p[0]} ${p[1]} L${p[2]} ${p[3]}`,stroke:'#c7a86a','stroke-width':'52','fill':'none','stroke-linecap':'round'}));
+ // pond
+ add(layer,'ellipse',{cx:930,cy:190,rx:135,ry:82,fill:'#4d909e',stroke:'#b8d8d0','stroke-width':'8'});
+ // village square
+ add(layer,'circle',{cx:600,cy:400,r:105,fill:'#d7bd78',opacity:.9});
+ // houses
+ [[540,335],[660,335],[540,465],[660,465]].forEach((p,i)=>drawHouse(p[0],p[1],i));
+ // landmarks
+ drawShrine(260,180);drawRuins(930,650);drawGrove(220,650);
+ const title=add(layer,'text',{x:600,y:418,'text-anchor':'middle',fill:'#4a4a2c','font-size':'18','font-weight':'bold'});title.textContent='MEADOWREST';
+}
+function drawHouse(x,y,i){
+ add(layer,'rect',{x:x-43,y:y-30,width:86,height:70,rx:6,fill:'#a16f4b',stroke:'#674432','stroke-width':'4'});
+ add(layer,'path',{d:`M${x-55} ${y-30} L${x} ${y-75} L${x+55} ${y-30} Z`,fill:['#74463a','#80513b','#6b493b','#7d553b'][i]});
+ add(layer,'rect',{x:x-10,y:y+5,width:20,height:35,fill:'#5b3b2b'});add(layer,'rect',{x:x-34,y:y-12,width:19,height:18,fill:'#8eb5b0'});add(layer,'rect',{x:x+15,y:y-12,width:19,height:18,fill:'#8eb5b0'})
+}
+function drawShrine(x,y){add(layer,'circle',{cx:x,cy:y,r:72,fill:'#879075',opacity:.8});for(let i=0;i<3;i++)add(layer,'rect',{x:x-52+i*40,y:y-25,width:25,height:55,fill:'#6c6d60'});add(layer,'circle',{cx:x,cy:y-52,r:18,fill:'#e0cb78'})}
+function drawRuins(x,y){for(let i=0;i<8;i++){let a=i*Math.PI/4;add(layer,'rect',{x:x+Math.cos(a)*65-9,y:y+Math.sin(a)*45-30,width:18,height:60,fill:'#777468'})}add(layer,'circle',{cx:x,cy:y,r:75,fill:'none',stroke:'#9a9275','stroke-width':'8'})}
+function drawGrove(x,y){for(let i=0;i<9;i++){let a=i*Math.PI*2/9;treeShape(x+Math.cos(a)*55,y+Math.sin(a)*40,22)}add(layer,'circle',{cx:x,cy:y,r:20,fill:'#c5df91'})}
+function treeShape(x,y,r){let g=add(layer,'g',{});add(g,'ellipse',{cx:x,cy:y+r*.8,rx:r*1.2,ry:r*.35,fill:'#315331',opacity:.3});add(g,'rect',{x:x-5,y:y,width:10,height:r*1.2,fill:'#6a452b'});add(g,'circle',{cx:x,cy:y-r*.35,r:r,fill:'#32633a'});add(g,'circle',{cx:x-r*.55,cy:y-r*.05,r:r*.65,fill:'#3d7441'});add(g,'circle',{cx:x+r*.55,cy:y-r*.05,r:r*.65,fill:'#3d7441'})}
+function spawnTree(){let x,y;do{x=rnd(40,1160);y=rnd(40,760)}while(Math.hypot(x-600,y-400)<145);trees.push({x,y,r:rnd(16,25)});treeShape(x,y,trees.at(-1).r)}
+function spawnMonster(){const types=[['Forest Slime',14,'#69a64e'],['Deku Sprout',16,'#789b4a'],['Wild Bat',12,'#5d5575'],['Forest Pup',18,'#8c6b4b'],['Moss Goblin',20,'#6f8946']];let t=choice(types),x,y;do{x=rnd(60,1140);y=rnd(60,740)}while(Math.hypot(x-player.x,y-player.y)<180);monsters.push({x,y,name:t[0],hp:t[1],maxHp:t[1],color:t[2],atk:[2,4]})}
+function monsterShape(m){let g=add(layer,'g',{transform:`translate(${m.x} ${m.y})`});add(g,'ellipse',{cx:0,cy:14,rx:22,ry:7,fill:'#30452c',opacity:.3});add(g,'circle',{cx:0,cy:0,r:18,fill:m.color});add(g,'circle',{cx:-6,cy:-4,r:4,fill:'#fff'});add(g,'circle',{cx:6,cy:-4,r:4,fill:'#fff'});add(g,'circle',{cx:-6,cy:-4,r:2,fill:'#222'});add(g,'circle',{cx:6,cy:-4,r:2,fill:'#222'});return g}
+function playerShape(){let g=add(layer,'g',{id:'playerSprite',transform:`translate(${player.x} ${player.y})`});add(g,'ellipse',{cx:0,cy:20,rx:20,ry:7,fill:'#30452c',opacity:.3});add(g,'rect',{x:-11,y:9,width:8,height:20,rx:3,fill:'#4b382d'});add(g,'rect',{x:3,y:9,width:8,height:20,rx:3,fill:'#4b382d'});add(g,'rect',{x:-17,y:-17,width:34,height:33,rx:9,fill:hero.outfit});add(g,'circle',{cx:0,cy:-35,r:17,fill:hero.skin});add(g,'path',{d:'M-17 -36 Q-16 -53 0 -53 Q16 -53 17 -36 L12 -43 L4 -36 L-3 -44 L-10 -36Z',fill:hero.hair});add(g,'circle',{cx:-6,cy:-35,r:2.7,fill:hero.eyes});add(g,'circle',{cx:6,cy:-35,r:2.7,fill:hero.eyes});add(g,'path',{d:'M-5 -26 Q0 -22 5 -26',fill:'none',stroke:'#633d31','stroke-width':'2'});add(g,'line',{x1:13,y1:-3,x2:31,y2:-22,stroke:'#e5e0d4','stroke-width':'4','stroke-linecap':'round'});return g}
+function drawWorld(){
+ // remove dynamic sprite groups, then redraw
+ layer.querySelectorAll('.dynamic').forEach(n=>n.remove());
+ monsters.forEach(m=>{let g=monsterShape(m);g.classList.add('dynamic');let hp=add(g,'rect',{x:-22,y:-32,width:44,height:4,fill:'#4a2525'});add(g,'rect',{x:-22,y:-32,width:44*(m.hp/m.maxHp),height:4,fill:'#e35b4e'})});
+ let pg=playerShape();pg.classList.add('dynamic');
+ // player should render on top
+}
+function updateHUD(){heroName.textContent=hero.name;level.textContent=stats.level;hpText.textContent=Math.ceil(stats.hp)+'/'+stats.maxHp;goldText.textContent=stats.gold;xpText.textContent=stats.xp+'/30';manaText.textContent=(battleState?battleState.mana:10)+'/10';hpFill.style.width=(stats.hp/stats.maxHp*100)+'%';manaFill.style.width=((battleState?battleState.mana:10)*10)+'%'}
+function move(dt){
+ let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
+ if(dx||dy){let l=Math.hypot(dx,dy);dx/=l;dy/=l;let nx=clamp(player.x+dx*150*dt,25,1175),ny=clamp(player.y+dy*150*dt,25,775);
+  if(!trees.some(t=>Math.hypot(nx-t.x,ny-t.y)<t.r+18)){player.x=nx;player.y=ny}
+ }
+ monsters.forEach(m=>{let d=Math.hypot(player.x-m.x,player.y-m.y);if(d<170&&d>38){m.x+=(player.x-m.x)/d*25*dt;m.y+=(player.y-m.y)/d*25*dt}if(d<34&&!battleState)startBattle(m)});
+}
+function loop(t){if(!started)return;let last=loop.last||t;loop.last=t;let dt=Math.min(.04,(t-last)/1000);if(!battleState)move(dt);drawWorld();updateHUD();requestAnimationFrame(loop)}
+addEventListener('keydown',e=>{if(e.target.matches('input,textarea'))return;let k=e.key.toLowerCase();keys[k]=true;if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k))e.preventDefault()});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+
+function shuffle(a){
+ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+ return a;
+}
+function drawCards(n){
+ const bs=battleState;
+ let drawn=0;
+ while(drawn<n){
+   if(bs.drawPile.length===0){
+     if(bs.discardPile.length===0)break;
+     bs.drawPile=shuffle(bs.discardPile.splice(0));
+     bs.logs.push('The discard pile is shuffled back into the draw pile.');
+   }
+   const id=bs.drawPile.pop();
+   if(id===undefined)break;
+   bs.hand.push(id);drawn++;
+ }
+ return drawn;
+}
+function startBattle(m){
+ const drawPile=shuffle(deck.slice());
+ battleState={enemy:m,mana:10,block:0,over:false,turn:1,hand:[],drawPile,discardPile:[],logs:['A '+m.name+' challenges you.']};
+ const drawn=drawCards(DRAW_PER_TURN);
+ battleState.logs.push('You draw '+drawn+' cards.');
+ $('battle').style.display='flex';renderBattle()
+}
+function renderBattle(){
+ let e=battleState.enemy;
+ $('battleHeroName').textContent=hero.name;
+ $('battlePlayerHp').textContent=Math.max(0,Math.ceil(stats.hp))+'/'+stats.maxHp;
+ $('battlePlayerFill').style.width=clamp(stats.hp/stats.maxHp*100,0,100)+'%';
+ $('battlePlayerBlock').textContent=battleState.block;
+ $('enemyTitle').textContent=e.name;
+ $('enemyHp').textContent=Math.max(0,e.hp)+'/'+e.maxHp;
+ $('enemyFill').style.width=clamp(e.hp/e.maxHp*100,0,100)+'%';
+ $('turnText').textContent=battleState.turn;
+ $('battleMana').textContent=battleState.mana;
+ $('drawText').textContent=battleState.drawPile.length;
+ $('discardText').textContent=battleState.discardPile.length;
+ $('deckCountText').textContent=deck.length;
+ $('enemyAttackPreview').textContent=e.atk[0]+'–'+e.atk[1];
+ $('log').innerHTML=battleState.logs.slice(-7).map(x=>'<div>'+x+'</div>').join('');
+ $('battleGrid').innerHTML='';
+ if(!battleState.hand.length){
+   $('battleGrid').innerHTML='<div class="handEmpty">No cards in hand. Pass to draw 2.</div>';
+ }else{
+   battleState.hand.forEach((id,index)=>{
+     let c=cardData[id],b=document.createElement('button');
+     b.disabled=battleState.over||battleState.mana<c.cost;
+     b.innerHTML='<b>'+c.name+'</b><br><small>'+c.type+' · '+c.cost+' mana</small><br><small>'+c.desc+'</small>';
+     b.onclick=()=>useCard(index);
+     $('battleGrid').appendChild(b);
+   });
+ }
+ $('passTurn').disabled=battleState.over;
+ $('battleReturn').style.display=battleState.over?'block':'none';
+ updateHUD();
+}
+$('passTurn').onclick=()=>{
+ if(!battleState||battleState.over)return;
+ resolveEnemyTurn('You pass.');
+};
+function resolveEnemyTurn(prefix){
+ const bs=battleState,e=bs.enemy;
+ bs.logs.push(prefix+' You keep the cards in your hand.');
+ let raw=rnd(e.atk[0],e.atk[1]),dmg=Math.max(0,raw-bs.block);
+ if(bs.block>0)bs.logs.push('Your '+bs.block+' block absorbs part of the attack.');
+ bs.block=0;
+ stats.hp-=dmg;
+ bs.logs.push(e.name+' attacks for '+dmg+'.');
+ if(stats.hp<=0){
+   stats.hp=stats.maxHp;
+   bs.logs.push('You return to the village and recover.');
+   bs.over=true;
+ }else{
+   bs.mana=10;bs.turn++;
+   const drawn=drawCards(DRAW_PER_TURN);
+   bs.logs.push('New turn: draw '+drawn+' cards and recover 10 mana.');
+ }
+ renderBattle();
+}
+function useCard(handIndex){
+ const bs=battleState;
+ if(bs.over)return;
+ const id=bs.hand[handIndex],c=cardData[id];
+ if(!c||bs.mana<c.cost)return;
+ bs.mana-=c.cost;
+ bs.hand.splice(handIndex,1);
+ bs.discardPile.push(id);
+ let e=bs.enemy;
+ if(c.type==='Attack'){
+   e.hp-=c.power;
+   bs.logs.push(c.name+' deals '+c.power+' damage.');
+ }else if(c.name==='Second Wind'){
+   stats.hp=clamp(stats.hp+5,0,stats.maxHp);
+   bs.logs.push('Second Wind restores 5 health.');
+ }else{
+   bs.block+=c.power;
+   bs.logs.push(c.name+' adds '+c.power+' block.');
+ }
+ if(e.hp<=0)return winBattle();
+ renderBattle();
+}
+function winBattle(){
+ let e=battleState.enemy;
+ stats.xp+=10;stats.gold+=rnd(1,7);
+ battleState.logs.push('Victory! +10 XP and gold.');
+ monsters=monsters.filter(x=>x!==e);
+ if(stats.xp>=30){
+   stats.xp-=30;stats.level++;stats.maxHp+=5;stats.hp=stats.maxHp;
+   battleState.logs.push('Level up!');
+ }else stats.hp=clamp(stats.hp+4,0,stats.maxHp);
+ battleState.over=true;renderBattle()
+}
+$('battleReturn').onclick=()=>{$('battle').style.display='none';battleState=null;drawWorld();updateHUD()};
+
+// Always begin at the creator so there is no stale/broken startup state.
+$('creator').style.display='flex';
+</script>
+<style>
+:root{color-scheme:dark}button{transition:transform .15s,background .15s,box-shadow .15s}button:disabled{opacity:.4;cursor:not-allowed}button:focus-visible{outline:3px solid #85e0ce;outline-offset:3px}button:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 5px 20px #0003}.modal{background:linear-gradient(145deg,#1d302b,#101c1b);color:#e9e4d3;border:1px solid #8e7950;padding:28px;box-shadow:0 24px 100px #0009}.modal h1,.modal h2{color:#e6c988}.modal h1{font-size:44px;letter-spacing:-2px}.modal p{color:#b9c7bc;line-height:1.6}.preview{background:radial-gradient(ellipse,#4d6950,#223b32);border:1px solid #678067}.opt{background:#263d33;color:#eee}.opt.sel{background:#47684b}.deckcard{padding:12px;border:1px solid #657458;border-radius:12px;background:#233b32;color:#e9eddf}.deckcard.sel{background:#36583f}.collectionNote{background:#13231e;color:#c5cfb6}.combatant{padding:20px;background:radial-gradient(ellipse at top,#304637,#14221d)}#battle .modal{background:linear-gradient(145deg,#1d302b,#101c1b)}#battleGrid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}#battleGrid button{min-height:166px;text-align:left;background:linear-gradient(145deg,#493831,#261f23);border-color:#b77c61;position:relative;padding:16px;line-height:1.6}#battleGrid button.defense{background:linear-gradient(145deg,#25484e,#192b34);border-color:#65a2a7}#battleGrid button b{display:block;font-size:17px}#battleGrid button .sigil{display:block;font-size:26px;color:#eac98a}#log{height:86px;color:#bac9be;font:13px/1.6 system-ui}#hud{backdrop-filter:blur(12px);border-width:1px}#quest{position:fixed;left:14px;top:170px;background:#12291ee8;border:1px solid #a38c53;padding:13px;border-radius:12px;width:260px;z-index:20;font:13px/1.6 system-ui;color:#d5ddc6}#quest b{color:#efd18d}#hint{font:12px system-ui;max-width:90vw;text-align:center}#quickDecks{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}#rewardBox{background:#34523b;border:1px solid #a8b883;border-radius:12px;padding:15px;margin-top:14px}#rewardChoices{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}#touch{position:fixed;bottom:65px;left:18px;z-index:25;display:grid;grid-template-columns:repeat(3,44px);gap:4px}#touch button{touch-action:none;padding:12px 0;background:#163529dd}#toast{position:fixed;bottom:125px;left:50%;transform:translateX(-50%);background:#172e25;color:#f3d58c;border:1px solid #aa975d;border-radius:12px;padding:14px 24px;z-index:80;pointer-events:none;display:none}#world{background:#152a21}#world text{paint-order:stroke;stroke:#d4cfaa;stroke-width:2px}
+@media(max-width:700px){.modal{padding:17px;max-height:94dvh}.modal h1{font-size:34px}.creatorLayout{gap:10px}.preview{min-height:130px;height:160px}.preview svg{height:160px}#hud{width:175px;top:8px;left:8px}#menu{top:8px;right:8px;flex-direction:column}#menu button{font-size:12px;padding:7px}#quest{top:158px;left:8px;width:175px;font-size:11px}.combatant{padding:12px}.combatHp{font-size:23px}#battleGrid{grid-template-columns:repeat(2,1fr)}#battleGrid button{min-height:135px}#hint{bottom:10px;width:92vw}#deckGrid{grid-template-columns:repeat(2,1fr)}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<div id="quest"><b>THE HOLLOW CROWN</b><br><span id="questText">Build your deck. Find your courage.</span></div>
+<div id="toast" role="status"></div>
+<div id="touch" aria-label="Movement"><span></span><button data-key="w" aria-label="Move up">↑</button><span></span><button data-key="a" aria-label="Move left">←</button><button data-key="s" aria-label="Move down">↓</button><button data-key="d" aria-label="Move right">→</button></div>
+<script>
+// Campaign enhancements. All progress stays in this browser; no remote requests.
+const SAVE_KEY='cardbound-v2';
+let victories=0,bossDefeated=false,rewardPending=false,editingHero=false,saveClock=0;
+const paused=()=>['creator','deck'].some(id=>$(id).style.display!=='none');
+const toast=message=>{ $('toast').textContent=message;$('toast').style.display='block';clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').style.display='none',3000)};
+function saveGame(){if(!started||battleState)return;try{localStorage.setItem(SAVE_KEY,JSON.stringify({hero,stats,deck,collection,player,victories,bossDefeated,monsters}));}catch{}}
+function questUpdate(){$('questText').textContent=bossDefeated?'The Warden has fallen. Meadowrest is safe!':victories<5?`Defeat forest creatures: ${victories}/5. Rest at Meadowrest to recover.`:'The Thorn Warden awaits at the Sunken Ruins, southeast.'}
+const originalHUD=updateHUD;updateHUD=function(){originalHUD();questUpdate()};
+const originalMove=move;move=function(dt){if(paused())return;originalMove(dt);if(!battleState&&Math.hypot(player.x-600,player.y-400)<85)stats.hp=clamp(stats.hp+dt*3,0,stats.maxHp);saveClock+=dt;if(saveClock>4){saveClock=0;saveGame()}};
+addEventListener('blur',()=>{keys={};saveGame()});addEventListener('pagehide',saveGame);
+addEventListener('keydown',e=>{if(e.target.matches('input')){keys={};return}if(battleState&&!battleState.over&&e.code==='Space'){e.preventDefault();$('passTurn').click()}});
+// Keep character editing and deck management from restarting the campaign.
+$('characterBtn').onclick=()=>{if(!started||battleState)return;editingHero=true;keys={};$('nameInput').value=hero.name;$('creatorNext').textContent='Save Character';$('creator').style.display='flex';renderOptions();updatePreview()};
+$('creatorNext').onclick=()=>{hero.name=$('nameInput').value.trim()||'Adventurer';$('creator').style.display='none';if(editingHero){editingHero=false;saveGame();return}deckBuildMode='start';renderDeck()};
+$('deckBtn').onclick=()=>{if(!started||battleState)return;keys={};deckBuildMode='manage';renderDeck()};
+$('resetBtn').onclick=()=>{if(confirm('Start a new adventure? Your Cardbound save will be removed.')){try{localStorage.removeItem(SAVE_KEY)}catch{}location.reload()}};
+const quick=document.createElement('div');quick.id='quickDecks';$('deckGrid').before(quick);
+const originalDeck=renderDeck;renderDeck=function(){originalDeck();quick.innerHTML='';if(deckBuildMode==='start'){[['Balanced',[0,0,1,1,2,5,5,7,7,9]],['Spellblade',[0,0,3,3,4,4,5,7,9,9]]].forEach(([name,list])=>{let b=document.createElement('button');b.textContent=name+' starter';b.onclick=()=>{deck=list.slice();renderDeck()};quick.append(b)})}else{$('beginAdventure').disabled=deck.length<10;$('deckStatus').textContent=`${deck.length}/30 cards · Keep at least 10 cards in your deck.`}$('deck').querySelector('.collectionNote').innerHTML=`<b>Selected:</b> ${deck.length} · Minimum 10 · Maximum 30 · Up to 3 copies`};
+$('beginAdventure').onclick=()=>{if(deck.length<10)return;$('deck').style.display='none';keys={};if(!started)startWorld();saveGame()};
+const originalStartBattle=startBattle;startBattle=function(m){keys={};originalStartBattle(m);drawCards(3);battleState.intent=rnd(m.atk[0],m.atk[1]);renderBattle()};
+const originalBattle=renderBattle;renderBattle=function(){originalBattle();const bs=battleState;$('enemyAttackPreview').textContent=bs.over?'—':`${bs.intent??bs.enemy.atk[0]} damage next turn`;$('battle').querySelector('h2').textContent=bs.over?(bs.defeated?'A second chance':'Victory'):(bs.enemy.boss?'The Hollow Crown':'Forest encounter');$('battleGrid').querySelectorAll('button').forEach((b,i)=>{const c=cardData[bs.hand[i]];b.classList.toggle('defense',c.type==='Defense');const icon=document.createElement('span');icon.className='sigil';icon.textContent=c.type==='Attack'?'⚔':'◇';b.prepend(icon)});$('log').scrollTop=$('log').scrollHeight;$('battleReturn').disabled=rewardPending};
+resolveEnemyTurn=function(prefix){const bs=battleState,e=bs.enemy;bs.logs.push(prefix);const damage=Math.max(0,bs.intent-bs.block);stats.hp=Math.max(0,stats.hp-damage);bs.logs.push(`${e.name} deals ${damage} damage (${Math.min(bs.intent,bs.block)} blocked).`);bs.block=0;if(stats.hp<=0){bs.over=true;bs.defeated=true;stats.gold=Math.max(0,stats.gold-5);bs.logs.push('Rescued to Meadowrest. Lose up to 5 gold.')}else{bs.turn++;bs.mana=10;drawCards(DRAW_PER_TURN);bs.intent=rnd(e.atk[0],e.atk[1])+(e.boss&&bs.turn%3===0?4:0);bs.logs.push('Mana restored. Draw 2 cards.')}renderBattle()};
+useCard=function(index){const bs=battleState;if(!bs||bs.over)return;const c=cardData[bs.hand[index]];if(!c||bs.mana<c.cost)return;bs.mana-=c.cost;bs.discardPile.push(bs.hand.splice(index,1)[0]);if(c.type==='Attack'){bs.enemy.hp-=c.power;bs.logs.push(`${c.name}: ${c.power} damage.`);if(c.name==='Blood Pact')stats.hp=Math.max(1,stats.hp-2)}else if(['Second Wind','Moon Mend'].includes(c.name)){stats.hp=clamp(stats.hp+c.power,0,stats.maxHp);bs.logs.push(`${c.name}: restore ${c.power} health.`)}else{bs.block+=c.power;bs.logs.push(`${c.name}: gain ${c.power} block.`);if(c.name==='Rally')drawCards(1)}if(bs.enemy.hp<=0)winBattle();else renderBattle()};
+function spawnBoss(){if(bossDefeated||monsters.some(m=>m.boss))return;monsters.push({x:930,y:650,name:'Thorn Warden',hp:65,maxHp:65,color:'#713a75',atk:[5,8],boss:true})}
+const reward=document.createElement('div');reward.id='rewardBox';reward.style.display='none';$('battleGrid').after(reward);
+winBattle=function(){const bs=battleState,e=bs.enemy;victories++;if(e.boss)bossDefeated=true;const gold=e.boss?30:rnd(5,10);stats.gold+=gold;stats.xp+=e.boss?30:10;monsters=monsters.filter(m=>m!==e);while(stats.xp>=30){stats.xp-=30;stats.level++;stats.maxHp+=5;stats.hp=stats.maxHp;bs.logs.push('Level up! +5 maximum health.')}stats.hp=clamp(stats.hp+4,0,stats.maxHp);bs.logs.push(`Victory! +${e.boss?30:10} XP · +${gold} gold · Recover 4 health.`);bs.over=true;rewardPending=true;reward.style.display='block';reward.innerHTML='<b>Choose your spoils</b><div>Add one card to your collection, or recover 8 health.</div><div id="rewardChoices"></div>';shuffle(cardData.filter(c=>(collection[c.id]||0)<3).slice()).slice(0,3).forEach(c=>{const b=document.createElement('button');b.textContent=c.name+' · '+c.cost+' mana';b.title=c.desc;b.onclick=()=>{collection[c.id]=(collection[c.id]||0)+1;if(deck.length<MAX_DECK)deck.push(c.id);finishReward(c.name+' added to your '+(deck.includes(c.id)?'deck':'collection')+'.')};$('rewardChoices').append(b)});const heal=document.createElement('button');heal.textContent='Rest · Heal 8';heal.onclick=()=>{stats.hp=clamp(stats.hp+8,0,stats.maxHp);finishReward('Recovered 8 health.')};$('rewardChoices').append(heal);if(victories>=5)spawnBoss();renderBattle()};
+function finishReward(message){if(!rewardPending)return;rewardPending=false;reward.style.display='none';battleState.logs.push(message);renderBattle()}
+$('battleReturn').onclick=()=>{if(rewardPending)return;if(battleState.defeated){stats.hp=stats.maxHp;player={x:600,y:400};battleState.enemy.hp=battleState.enemy.maxHp}battleState=null;$('battle').style.display='none';reward.style.display='none';while(monsters.filter(m=>!m.boss).length<6)spawnMonster();saveGame();drawWorld();updateHUD()};
+document.querySelectorAll('#touch button').forEach(b=>{b.onpointerdown=e=>{e.preventDefault();keys[b.dataset.key]=true;b.setPointerCapture(e.pointerId)};b.onpointerup=b.onpointercancel=b.onlostpointercapture=()=>keys[b.dataset.key]=false});
+$('world').setAttribute('preserveAspectRatio','xMidYMid meet');$('hint').textContent='WASD / arrows or touch pad to move · Space to end turn · Rest in the village';$('battle').querySelector('.handTitle').textContent='Your hand · Start with 5 cards · Draw 2 each turn';$('log').setAttribute('aria-live','polite');
+const originalMonster=monsterShape;monsterShape=function(m){const g=originalMonster(m);if(m.boss){add(g,'path',{d:'M-18 -18 L-22 -37 L-8 -29 L0 -44 L8 -29 L22 -37 L18 -18Z',fill:'#e2be67'});const label=add(g,'text',{x:0,y:38,'text-anchor':'middle',fill:'#301833','font-size':13});label.textContent='THORN WARDEN'}return g};
+try{const data=JSON.parse(localStorage.getItem(SAVE_KEY));if(data&&Array.isArray(data.deck)&&data.deck.length>=10&&data.deck.every(id=>Number.isInteger(id)&&cardData[id])&&data.stats?.hp>0&&data.hero&&data.collection){const resume=document.createElement('button');resume.textContent='Continue saved adventure';resume.style.marginRight='10px';$('creatorNext').before(resume);resume.onclick=()=>{hero=data.hero;stats=data.stats;deck=data.deck;collection=data.collection;victories=data.victories||0;bossDefeated=!!data.bossDefeated;$('creator').style.display='none';startWorld();player=data.player||player;if(Array.isArray(data.monsters))monsters=data.monsters;if(victories>=5)spawnBoss();updateHUD();toast('Welcome back, '+hero.name)}}}catch{}
+</script>
+<!-- Development log: 2026-09-20. Crystalwood visual refresh; stable card-picker controls;
+shared customizable pixel characters; code/DOM diagnostics and SVG rendering only.
+UNVERIFIED DRAFT: full browser playtesting remains blocked. Original game preserved. -->
+<style>
+html,body,button,input{font-family:ui-monospace,'Courier New',monospace}body{background:#080e24}
+.modal,#battle .modal{background:linear-gradient(135deg,#21397a,#121c47 75%);border:3px solid #cbd6f0;border-radius:4px;box-shadow:inset 0 0 0 2px #59659d,0 0 0 2px #071126,0 20px 60px #0009;color:#f4f3e3}
+.modal h1,.modal h2{color:#ffe7a4;letter-spacing:1px;text-shadow:2px 3px #090f2d}.modal h1{font-size:36px}.modal p{color:#d3dcf4;font-size:13px}.optionTitle{color:#e9d6a0;font-size:13px}
+button{background:#233d79;border:2px solid #99afd9;border-radius:3px;box-shadow:inset -2px -2px #111c48;min-height:36px}button:not(:disabled):hover{background:#3d5895;transform:none;box-shadow:inset 2px 2px #718dc2}button:focus-visible{outline:3px solid #ffe7a4;outline-offset:2px}button:disabled{opacity:.45}.opt{background:#23386a;color:#eee;border-color:#708abb}.opt.sel{outline:2px solid #ffe7a4;background:#4963a2}.color.sel{box-shadow:inset 0 0 0 3px #fff}
+input{background:#101b3d;border:2px solid #9eafd1;color:#fff;border-radius:2px}.preview{border:2px solid #879cc5;border-radius:2px;background:#0b1b35;overflow:hidden;min-height:310px}.preview svg{height:310px!important;max-width:300px;image-rendering:pixelated}
+#hud,#quest,#hint{background:#142651ed;border:2px solid #b4c4e5;border-radius:3px;box-shadow:inset 0 0 0 1px #415987,2px 3px #080e28;color:#e4ebff}#hud{width:250px}#quest{top:180px;width:250px;font-family:inherit}#menu{gap:5px}#hint{font-family:inherit;font-size:11px;line-height:1.5}.bar,.combatBar{border-radius:0;height:10px;border:1px solid #94acc9}.hp,.combatPlayerFill{background:#72b36a}.mana{background:#68b8db}#world{background:#112b38;image-rendering:pixelated}#world text{stroke:none;font-family:ui-monospace,monospace;letter-spacing:1px}
+.deckcard,.deckcard.sel{background:#172c58;border:2px solid #667dad;border-radius:3px;padding:7px;min-width:0}.deckcard.sel{background:#2d4472;border-color:#e4cd88}.cardPick{display:flex;flex-direction:column;gap:9px;flex:1;text-align:left;width:100%;padding:10px 7px;background:transparent;border-color:transparent;box-shadow:none;font:inherit;line-height:1.35}.cardPick b{color:#ffedb4;font-size:14px}.cardPick small{font-size:11px;display:block}.cardPick:disabled{opacity:.8}.qtyrow{gap:3px}.qty{font-size:14px;margin:0 2px}.qtybtn{min-width:38px;min-height:40px;padding:5px}.collectionNote{background:#0d1d45;color:#dce6ff;border:1px solid #7188b9;border-radius:0;position:sticky;bottom:0;z-index:2}.combatant{background:#11264f;border:2px solid #6b82b0;border-radius:3px;padding:12px}.combatant.enemy{border-color:#c38c90}.combatant.player{border-color:#7faac4}.combatName{font-size:16px}.combatHp{font-size:23px}.combatLabel{font-size:10px;color:#c2d0ed}#log{background:#091630;border:1px solid #567098;border-radius:0;height:75px;font:12px/1.5 ui-monospace,monospace;color:#d4e0f0}
+#battleGrid button,#battleGrid button.defense{border-radius:3px;background:linear-gradient(#583c54,#292748);border-color:#c18d94;font-size:12px;min-height:140px;padding:11px}#battleGrid button.defense{background:linear-gradient(#24516c,#182c48);border-color:#8ab6cb}#battleGrid button b{font-size:14px}#battleGrid button .sigil{font-size:23px}.battleInfo{font-size:12px}#battleStage{height:145px;border:2px solid #7488b4;margin-bottom:10px;background:#152d46;overflow:hidden}#battleStage svg{image-rendering:pixelated}.passHint{font-size:11px;color:#d0dafa}#rewardBox{background:#1c3c58;border-radius:2px;border-color:#e0ca85}#touch button{border-radius:2px;background:#182e60e8}
+.editionTag{font-size:10px;color:#9ee1eb;letter-spacing:3px;margin-bottom:5px}.draftNote{font-size:10px;color:#c3cce6;margin-top:10px;text-align:center}
+@media(max-width:700px){#hud{width:178px;font-size:12px}#quest{width:178px;top:165px;font-size:10px}.preview{min-height:180px;height:180px}.preview svg{height:180px!important}.creatorLayout{grid-template-columns:1fr}.modal{padding:16px}.modal h1{font-size:27px}#battleStage{height:110px}#battleGrid{grid-template-columns:repeat(2,minmax(0,1fr))}#deckGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.combatName{font-size:13px}.combatants{gap:7px}.qtybtn{min-width:34px}.combatHp{font-size:20px}}
+</style>
+<script>
+// Original vector-native pixel artwork. No external fonts, images, or game assets.
+function shade(hex,factor){const n=parseInt(hex.slice(1),16);return '#'+[n>>16,(n>>8)&255,n&255].map(v=>Math.round(clamp(v*factor,0,255)).toString(16).padStart(2,'0')).join('')}
+function px(parent,x,y,w,h,color){return add(parent,'rect',{x,y,width:w,height:h,fill:color})}
+function pixelSprite(parent,rows,palette,scale=1,x=0,y=0){const g=add(parent,'g',{transform:`translate(${x} ${y}) scale(${scale})`,'shape-rendering':'crispEdges'});rows.forEach((row,yy)=>{for(let xx=0;xx<row.length;xx++)if(palette[row[xx]])px(g,xx,yy,1,1,palette[row[xx]])});return g}
+const pixelArt={
+ tree:['......dd........','.....dggdd......','....dglgggd.....','...dggllgggd....','..dgggglggggd...','.dggglgggggggd..','..dgggggggggd...','...dgggggggd....','..dgglggggggd...','.dgggllggggggd..','dggggglgggggggd.','.ddgggggggggdd..','...ddgggggdd....','......tt........','......tT........','.....ttTt.......'],
+ slime:['................','................','......dddd......','....ddggggdd....','...dgllllgggd...','..dggllggggggd..','.dggggggggggggd.','.dgweggggwegggd.','.dgwwegggwweggd.','dggggggggggggggd','dgggggmmmmgggggd','.dggggggggggggd.','..dddddddddddd..'],
+ bat:['d..............d','dd............dd','dgd..........dgd','dggd..dddd..dggd','dgggddggggddgggd','.dggggggggggggd.','..ddggwggwggdd..','....dgeggegd....','.....dggggd.....','.....dwggwd.....','......dddd......'],
+ sprout:['.....ll...ll....','....lggl.lggl...','.....lgglggl....','......lgggl.....','.......gg.......','.....dddddd.....','....dggggggd....','...dggwggwggd...','...dggeggeggd...','....dggmmggd....','.....dddddd.....','....tt....tt....','...ttt....ttt...'],
+ pup:['...dd......dd...','..dggd....dggd..','..dgldddddlgd...','..dgggggggggd...','..dgwggggwggd...','..dgeggggeggd...','...dggmmgggd....','....ddddddd.....','...dgggggggd....','..dgggggggggd...','...dgdddddgd....','...ddd...ddd....'],
+ goblin:['..dd........dd..','.dggddddddddggd.','..dggggggggggd..','...dgwwggwwgd...','...dgeeggeegd...','...dgggmmgggd...','....dddddddd....','...dcccccAccd...','..dcccccAAcccd..','..dgdcAAAcdgd...','...ddccccddd....','....dbbdbbd.....','....ddd.ddd.....'],
+ warden:['...a....a....a..','...aa..aaa..aa..','...aaaaaaaaaaa..','....ddddddddd...','...dppllllpppd..','...dpwppppwp pd..'.replace(' ',''),'...dpeppppeppd..','....dppmmpppd...','.....ddddddd....','...dppppAppppd..','..dppppAAAppppd.','.dpddppAAAppddpd','..ddpppAAApppdd.','...dpppppppppd..','....ddddddddd...']
+};
+function heroPixels(parent,scale=1,x=0,y=0){
+ const female=hero.gender==='Female',g=add(parent,'g',{transform:`translate(${x} ${y}) scale(${scale})`,'shape-rendering':'crispEdges','data-gender':hero.gender});
+ const hair=hero.hair,hd=shade(hair,.62),hl=shade(hair,1.4),cloth=hero.outfit,cd=shade(cloth,.65),cl=shade(cloth,1.45),skin=hero.skin,sd=shade(skin,.76),gold='#edd28a';
+ px(g,3,25,12,1,'#142935');px(g,1,24,16,1,'#203d40');
+ if(female){px(g,3,3,12,17,hd);px(g,2,8,3,14,hair);px(g,14,7,3,14,hair);px(g,3,6,2,13,hl);px(g,15,10,1,9,hl)}
+ px(g,5,19,3,5,'#494156');px(g,10,19,3,5,'#494156');px(g,4,23,4,2,'#23253c');px(g,10,23,4,2,'#23253c');
+ px(g,4,12,10,8,cd);px(g,5,12,8,7,cloth);px(g,5,13,2,5,cl);px(g,2,13,3,6,cd);px(g,13,13,3,6,cd);px(g,2,14,2,3,cl);px(g,14,14,2,3,cloth);px(g,2,18,2,2,skin);px(g,14,18,2,2,skin);
+ if(female){px(g,3,19,12,3,cd);px(g,4,19,10,2,cloth);px(g,5,19,2,2,cl);px(g,4,21,10,1,gold)}
+ px(g,5,17,8,2,'#73513b');px(g,8,17,2,2,gold);px(g,6,12,6,1,gold);px(g,7,13,4,1,gold);
+ px(g,4,3,10,8,sd);px(g,5,3,8,8,skin);px(g,3,6,2,3,skin);px(g,13,6,2,3,skin);px(g,6,10,6,2,skin);
+ px(g,3,2,12,3,hd);px(g,4,1,10,3,hair);px(g,6,0,6,1,hd);px(g,5,2,5,1,hl);
+ if(female){px(g,4,4,3,2,hair);px(g,4,6,1,4,hair);px(g,7,3,4,1,hair);px(g,11,4,3,2,hair);px(g,13,6,1,4,hair);px(g,5,3,9,1,gold);px(g,9,3,1,1,'#b8ffff');px(g,14,9,1,2,gold)}
+ else {px(g,4,4,2,2,hair);px(g,7,4,2,1,hair);px(g,10,4,1,2,hair);px(g,12,4,2,1,hair)}
+ px(g,6,7,2,2,'#fff1d9');px(g,10,7,2,2,'#fff1d9');px(g,7,7,1,2,hero.eyes);px(g,11,7,1,2,hero.eyes);
+ if(female){px(g,5,6,3,1,'#352937');px(g,10,6,3,1,'#352937')}
+ if(hero.face==='Brave'){px(g,6,6,2,1,hd);px(g,10,6,2,1,hd);px(g,8,10,3,1,'#855044')}
+ else if(hero.face==='Focused'){px(g,7,6,1,1,hd);px(g,10,6,1,1,hd);px(g,8,10,2,1,'#855044')}
+ else if(hero.face==='Calm'){px(g,8,10,2,1,'#b06c59')}
+ else{px(g,8,10,3,1,'#855044');px(g,9,11,1,1,'#855044')}
+ px(g,16,10,1,9,'#8aa5bc');px(g,17,8,1,10,'#ecf7e3');px(g,15,18,4,1,gold);px(g,16,19,1,3,'#674d3d');return g;
+}
+function monsterKind(m){return m.boss?'warden':m.name.includes('Slime')?'slime':m.name.includes('Bat')?'bat':m.name.includes('Pup')?'pup':m.name.includes('Sprout')?'sprout':'goblin'}
+function monsterPixels(parent,m,scale=3,x=0,y=0){const color=m.color||'#689a58';return pixelSprite(parent,pixelArt[monsterKind(m)],{d:'#202c3a',g:color,l:shade(color,1.5),w:'#fff3dc',e:'#222035',m:'#594044',t:'#665038',c:'#8f694e',A:'#d2b477',b:'#4c4340',a:'#efd18a',p:'#855e9d'},scale,x,y)}
+let heroSymbolStamp='';
+function ensureHeroSymbol(){const stamp=JSON.stringify(hero);if(stamp===heroSymbolStamp&&$('heroPixel'))return;heroSymbolStamp=stamp;let symbol=$('heroPixel');if(!symbol){symbol=add($('world').querySelector('defs'),'g',{id:'heroPixel'})}symbol.replaceChildren();heroPixels(symbol)}
+updatePreview=function(){const svg=$('creator').querySelector('.preview svg');svg.replaceChildren();svg.setAttribute('viewBox','0 0 120 126');svg.setAttribute('role','img');svg.setAttribute('aria-label',hero.gender+' pixel adventurer preview');svg.setAttribute('shape-rendering','crispEdges');px(svg,0,0,120,126,'#182b49');for(let i=0;i<20;i++){px(svg,(i*37)%120,(i*19)%65,1,1,'#6889ab')}add(svg,'path',{d:'M0 75 H10 V65 H20 V55 H30 V65 H40 V72 H52 V60 H63 V47 H72 V57 H82 V67 H97 V55 H106 V66 H120 V100 H0Z',fill:'#33556b'});px(svg,0,92,120,34,'#31534c');px(svg,0,95,120,2,'#5a7e61');heroPixels(svg,3,31,21);const label=add(svg,'text',{x:60,y:117,fill:'#ecdfa6','font-size':5,'text-anchor':'middle'});label.textContent=hero.gender.toUpperCase()+' · '+hero.face.toUpperCase();ensureHeroSymbol()};
+// Replace the old double-render path: #picked stays in the document on every update.
+renderDeck=function(){
+ const total=deck.length,target=deckBuildMode==='start'?STARTING_DECK:MAX_DECK;
+ $('deck').style.display='flex';$('deckTitle').textContent=deckBuildMode==='start'?'Choose Your Starting Cards':'Manage Your Deck';
+ $('deckIntro').innerHTML=deckBuildMode==='start'?'Choose <b>10 cards</b>. Click a card or + to add a copy. Use − to remove one.':'Keep <b>10–30 cards</b>. Add or remove the copies you own. A smaller deck draws its best cards more often.';
+ $('deck').querySelector('.collectionNote').innerHTML='<b>Selected:</b> <span id="picked">'+total+'</span>/'+target+' · Up to 3 copies per card';
+ $('beginAdventure').textContent=deckBuildMode==='start'?'Begin Adventure':'Close Deck';$('beginAdventure').disabled=deckBuildMode==='start'?total!==10:total<10||total>30;
+ $('deckStatus').textContent=total<10?'Pick '+(10-total)+' more cards.':total===target?'Deck full. Remove a card to swap.':'Ready to adventure.';
+ $('quickDecks').replaceChildren();if(deckBuildMode==='start'){
+ [['Balanced',[0,0,1,1,2,5,5,7,7,9]],['Spellblade',[0,0,3,3,4,4,5,7,9,9]],['Clear',[]]].forEach(([name,list])=>{const b=document.createElement('button');b.id='preset-'+name;b.textContent=name==='Clear'?'Clear selection':name+' starter';b.onclick=()=>{deck=list.slice();renderDeck()};$('quickDecks').append(b)})}
+ $('deckGrid').replaceChildren();cardData.filter(c=>collection[c.id]>0).forEach(c=>{
+ const count=deck.filter(id=>id===c.id).length,limit=Math.min(3,collection[c.id]);const wrap=document.createElement('div');wrap.className='deckcard'+(count?' sel':'');
+ const pick=document.createElement('button');pick.id='pick-card-'+c.id;pick.className='cardPick';pick.setAttribute('aria-label','Add '+c.name+' to deck');pick.innerHTML='<b>'+c.name+'</b><small>'+c.type+' · '+c.cost+' mana</small><small>'+c.desc+'</small>';pick.disabled=total>=target||count>=limit;pick.onclick=()=>changeDeck(c.id,1);
+ const row=document.createElement('div');row.className='qtyrow';const minus=document.createElement('button');minus.id='remove-card-'+c.id;minus.className='qtybtn';minus.textContent='−';minus.setAttribute('aria-label','Remove one '+c.name);minus.disabled=!count;minus.onclick=()=>changeDeck(c.id,-1);
+ const qty=document.createElement('span');qty.className='qty';qty.textContent=count+'/'+limit;const plus=document.createElement('button');plus.id='add-card-'+c.id;plus.className='qtybtn';plus.textContent='+';plus.setAttribute('aria-label','Add one '+c.name);plus.disabled=pick.disabled;plus.onclick=()=>changeDeck(c.id,1);row.append(minus,qty,plus);wrap.append(pick,row);$('deckGrid').append(wrap)
+ });
+};
+function changeDeck(id,delta){const count=deck.filter(c=>c===id).length,target=deckBuildMode==='start'?10:30;if(delta>0){if(count>=Math.min(3,collection[id]||0)||deck.length>=target)return;deck.push(id)}else{const i=deck.indexOf(id);if(i<0)return;deck.splice(i,1)}renderDeck()}
+$('beginAdventure').onclick=()=>{if(deckBuildMode==='start'?deck.length!==10:deck.length<10||deck.length>30)return;$('deck').style.display='none';keys={};if(!started)startWorld();saveGame()};
+const baseStartWorld=startWorld;startWorld=function(){updatePreview();baseStartWorld()};
+const terrain=(x,y)=>{const n=Math.abs(Math.sin(x*12.9898+y*78.233)*43758.5453);return n-Math.floor(n)};
+function mapLabel(x,y,text){const g=add(layer,'g',{});px(g,x-text.length*4-6,y-13,text.length*8+12,20,'#142640');const t=add(g,'text',{x,y,fill:'#fff0c4','font-size':11,'text-anchor':'middle'});t.textContent=text}
+drawMap=function(){
+ const grass=$('grass');grass.replaceChildren();px(grass,0,0,48,48,'#638a52');px(grass,24,0,24,24,'#668e54');px(grass,0,24,24,24,'#668e54');px(grass,8,10,3,2,'#7a9d5d');px(grass,11,7,2,4,'#7a9d5d');px(grass,33,34,3,2,'#537f4b');px(grass,30,30,2,5,'#537f4b');
+ layer.setAttribute('shape-rendering','crispEdges');
+ // A tile-built trail network links all five landmarks.
+ const roads=[[600,400,260,180],[600,400,930,190],[600,400,930,650],[600,400,220,650]];
+ for(let y=0;y<800;y+=24)for(let x=0;x<1200;x+=24){const road=roads.some(([ax,ay,bx,by])=>{const f=clamp(((x-ax)*(bx-ax)+(y-ay)*(by-ay))/((bx-ax)**2+(by-ay)**2),0,1);return Math.hypot(x-ax-f*(bx-ax),y-ay-f*(by-ay))<27});if(road){px(layer,x,y,24,24,'#bcaa75');px(layer,x+4,y+5,5,2,'#d5c38b');px(layer,x+15,y+17,3,2,'#a59668')}else if(terrain(x,y)>.97){px(layer,x+4,y+12,3,4,'#c0cd81');px(layer,x+5,y+10,2,2,'#f0d49a')}}
+ // Stepped shoreline and small wave tiles.
+ for(let y=72;y<312;y+=12)for(let x=768;x<1104;x+=12){const d=((x-936)/150)**2+((y-192)/96)**2;if(d<1.25)px(layer,x,y,12,12,d>1?'#bec48b':d>.82?'#69b9a6':d>.45?'#428ca5':'#376d91');if(d<.8&&terrain(x,y)>.8){px(layer,x+2,y+5,6,1,'#85c9c8')}}
+ for(let y=300;y<504;y+=12)for(let x=480;x<720;x+=12){px(layer,x,y,11,11,(x+y)%24?'#a6a184':'#b4ad8c');px(layer,x+1,y+1,9,2,'#c2ba97')}
+ [[540,335],[660,335],[540,465],[660,465]].forEach((p,i)=>drawHouse(p[0],p[1],i));
+ drawShrine(260,180);drawRuins(930,650);drawGrove(220,650);
+ // Distant crags at the northern edge.
+ for(let i=0;i<15;i++){const x=i*88-30,top=4+(i%3)*6;add(layer,'path',{d:`M${x} 64 V${top+48} h12 v-12 h12 v-12 h12 v-12 h12 v-12 h12 v12 h12 v12 h12 v12 h12 V64Z`,fill:i%2?'#586778':'#65747d'});px(layer,x+48,top,12,12,'#d3dccb');px(layer,x+36,top+12,36,5,'#b7c4ba')}
+ mapLabel(600,417,'MEADOWREST');mapLabel(260,262,'CRYSTAL SHRINE');mapLabel(936,306,'MOONLEAF POND');mapLabel(930,743,'SUNKEN RUINS');mapLabel(220,729,'WHISPERING GROVE');
+};
+drawHouse=function(x,y,i){const g=add(layer,'g',{transform:`translate(${x-48} ${y-65})`});const roof=['#725771','#876452','#555f84','#775b67'][i];px(g,6,80,90,8,'#436a49');px(g,8,30,80,54,'#5c5360');px(g,12,35,72,45,'#dfc990');px(g,12,62,72,5,'#9e876d');px(g,14,36,4,42,'#8c6957');px(g,77,36,4,42,'#8c6957');for(let r=0;r<7;r++){px(g,12-r*2,8+r*4,72+r*4,4,roof);for(let c=0;c<9;c++)px(g,16+c*8+(r%2)*3,8+r*4,5,1,shade(roof,1.3))}px(g,10,34,76,4,'#403b54');px(g,39,53,19,29,'#604653');px(g,42,56,13,23,'#352f43');px(g,45,76,9,4,'#91837b');for(const wx of [22,65]){px(g,wx,46,13,14,'#5c5770');px(g,wx+2,48,9,10,'#a2d9d5');px(g,wx+6,48,1,10,'#e5e0b3');px(g,wx+2,52,9,1,'#e5e0b3')}px(g,65,0,10,19,'#8e8490');px(g,64,0,12,4,'#b7afac')};
+treeShape=function(x,y,r){return pixelSprite(layer,pixelArt.tree,{d:'#294a42',g:'#3d6b4b',l:'#739958',t:'#574c3c',T:'#907149'},r/6,x-r*1.3,y-r*2)};
+function clearScenerySpot(x,y){return Math.hypot(x-600,y-400)>180&&((x-936)/205)**2+((y-192)/160)**2>1&&![[260,210,115,130],[930,665,135,125],[220,665,135,115]].some(([cx,cy,rx,ry])=>Math.abs(x-cx)<rx&&Math.abs(y-cy)<ry)}
+spawnTree=function(){for(let attempt=0;attempt<500;attempt++){const x=rnd(40,1160),y=rnd(100,730);if(!clearScenerySpot(x,y))continue;const r=rnd(16,25);trees.push({x,y,r});treeShape(x,y,r);return}};
+const originalSpawnMonster=spawnMonster;spawnMonster=function(){for(let attempt=0;attempt<500;attempt++){originalSpawnMonster();const m=monsters.at(-1);if(clearScenerySpot(m.x,m.y))return;monsters.pop()}};
+drawShrine=function(x,y){const g=add(layer,'g',{});for(let i=0;i<4;i++)px(g,x-60+i*9,y+32-i*12,120-i*18,12,i%2?'#82979a':'#a4b0a7');px(g,x-18,y-18,36,40,'#465574');px(g,x-14,y-16,28,4,'#b3c5cb');pixelSprite(g,['....c....','...clc...','..clllc..','.clllllc.','clllwlllc','cllwwlllc','.clwwllc.','..clllc..','...clc...','....c....'],{c:'#439cac',l:'#88e2dd',w:'#e2ffff'},5,x-22,y-70);px(g,x-52,y-16,13,43,'#7c8f96');px(g,x+39,y-16,13,43,'#7c8f96')};
+drawRuins=function(x,y){for(let yy=-60;yy<=60;yy+=12)for(let xx=-72;xx<=72;xx+=12)px(layer,x+xx,y+yy,11,11,terrain(xx,yy)>.5?'#7e8b7e':'#697b75');for(const dx of [-64,-34,34,64]){const height=dx%3===0?58:42;px(layer,x+dx,y-height,14,height+18,'#445c63');px(layer,x+dx+2,y-height,7,height+18,'#94a59a');px(layer,x+dx-3,y-height-6,20,7,'#b2b9a5');px(layer,x+dx,y+12,12,4,'#557d58')}px(layer,x-25,y-12,50,28,'#334c54');px(layer,x-18,y-8,36,24,'#162d3b')};
+drawGrove=function(x,y){for(let i=0;i<8;i++){const a=i*Math.PI/4;treeShape(x+Math.cos(a)*65,y+Math.sin(a)*38,22)}px(layer,x-18,y-9,36,25,'#88a36e');pixelSprite(layer,['..ggg..','.gwwwg.','gwwwwwg','.gwwwg.','..ggg..','...t...','...t...'],{g:'#e6cc85',w:'#fff3c2',t:'#375e43'},3,x-10,y-18)};
+monsterShape=function(m){const g=add(layer,'g',{transform:`translate(${Math.round(m.x)} ${Math.round(m.y)})`});px(g,-19,14,38,5,'#355442');const id='monsterPixel-'+monsterKind(m)+'-'+m.color.slice(1);let symbol=$(id);if(!symbol){symbol=add($('world').querySelector('defs'),'g',{id});monsterPixels(symbol,m,1)}add(g,'use',{href:'#'+id,transform:'translate(-24 -26) scale(3)'});if(m.boss){const t=add(g,'text',{x:0,y:37,'text-anchor':'middle','font-size':10,fill:'#ffe8ba'});t.textContent='THORN WARDEN'}return g};
+playerShape=function(){ensureHeroSymbol();const moving=!battleState&&!paused()&&Object.values(keys).some(Boolean),step=moving?Math.floor(Date.now()/160)%2:0;const g=add(layer,'g',{id:'playerSprite',transform:`translate(${Math.round(player.x)} ${Math.round(player.y)-step*2})`});add(g,'use',{href:'#heroPixel',transform:'translate(-27 -53) scale(3)'});return g};
+// Avoid rebuilding thousands of sprite pixels every frame when the scene is still.
+drawWorld=function(){const stamp=[heroSymbolStamp,Math.round(player.x),Math.round(player.y),Object.values(keys).some(Boolean)?Math.floor(Date.now()/160)%2:0,...monsters.map(m=>[Math.round(m.x),Math.round(m.y),m.hp].join(','))].join('|');if(drawWorld.last===stamp&&$('playerSprite'))return;drawWorld.last=stamp;layer.querySelectorAll('.dynamic').forEach(n=>n.remove());monsters.forEach(m=>{const g=monsterShape(m);g.classList.add('dynamic');px(g,-22,-35,44,3,'#382b40');px(g,-22,-35,Math.round(44*m.hp/m.maxHp),3,'#df9986')});playerShape().classList.add('dynamic')};
+const stage=document.createElement('div');stage.id='battleStage';$('battle').querySelector('.combatants').before(stage);
+function renderBattleStage(){stage.replaceChildren();const svg=el('svg',{viewBox:'0 0 480 100',preserveAspectRatio:'xMidYMid slice','shape-rendering':'crispEdges',role:'img','aria-label':'Your adventurer facing '+battleState.enemy.name});stage.append(svg);px(svg,0,0,480,100,'#172c49');px(svg,0,38,480,62,'#456a55');for(let i=0;i<16;i++){pixelSprite(svg,pixelArt.tree,{d:'#213e43',g:'#2c5149',l:'#47745a',t:'#504935',T:'#61583e'},2,i*32-6,4)}px(svg,0,76,480,24,'#8d9470');for(let i=0;i<28;i++)px(svg,(i*73)%480,80+(i%4)*5,8,1,'#b5b68a');monsterPixels(svg,battleState.enemy,4,91,34);heroPixels(svg,3,339,7)}
+const previousRenderBattle=renderBattle;renderBattle=function(){previousRenderBattle();renderBattleStage()};
+const intro=$('creator').querySelector('p');intro.textContent='Choose your adventurer. Customize their colors, expression, and appearance.';
+const edition=document.createElement('div');edition.className='editionTag';edition.textContent='CRYSTALWOOD EDITION';$('creator').querySelector('h1').before(edition);
+const note=document.createElement('div');note.className='draftNote';note.textContent='Preview build · Full browser playtest pending';$('creator').querySelector('.modal').append(note);
+updatePreview();
+</script>
+</body>
+</html>
