@@ -463,7 +463,7 @@ renderDeck=function(){
 };
 function changeDeck(id,delta){const count=deck.filter(c=>c===id).length,target=deckBuildMode==='start'?10:30;if(delta>0){if(count>=Math.min(3,collection[id]||0)||deck.length>=target)return;deck.push(id)}else{const i=deck.indexOf(id);if(i<0)return;deck.splice(i,1)}renderDeck()}
 $('beginAdventure').onclick=()=>{if(deckBuildMode==='start'?deck.length!==10:deck.length<10||deck.length>30)return;$('deck').style.display='none';keys={};if(!started)startWorld();saveGame()};
-const baseStartWorld=startWorld;startWorld=function(){updatePreview();baseStartWorld()};
+const baseStartWorld=startWorld;startWorld=function(){for(const button of $('creator').querySelectorAll('button')){if(button.textContent==='Continue saved adventure')button.remove()}updatePreview();baseStartWorld()};
 const terrain=(x,y)=>{const n=Math.abs(Math.sin(x*12.9898+y*78.233)*43758.5453);return n-Math.floor(n)};
 function mapLabel(x,y,text){const g=add(layer,'g',{});px(g,x-text.length*4-6,y-13,text.length*8+12,20,'#142640');const t=add(g,'text',{x,y,fill:'#fff0c4','font-size':11,'text-anchor':'middle'});t.textContent=text}
 drawMap=function(){
