@@ -11,6 +11,8 @@ Play `arena.html` to work exclusively on card battles. `index.html` retains the 
 - A defeat still awards 10 XP for completing the encounter.
 - Every 100 XP increases the player level by one.
 - Level 2 unlocks Power Boost: once per encounter, select one eligible card for +1 damage, +1 block, or +1 healing on its next play. The selection may be changed until the card is played.
+- Level 3 unlocks Weaken: once per encounter, reduce all enemy attack intents by 1 for the remainder of that encounter.
+- Level 4 requires one permanent mastery choice in the Deck Workshop: improve Power Boost to +2, or improve Weaken to -2. The unchosen ability remains at its original strength.
 - Level 5 unlocks Retain: select one unplayed card per turn to keep it in hand through turn-end. The retained card joins the next four-card draw.
 - Player level, XP, and both ability states persist in the Battle Lab save.
 
