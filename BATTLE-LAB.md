@@ -2,21 +2,37 @@
 
 Play `arena.html` to work exclusively on card battles. `index.html` retains the original adventure.
 
-## Initial balance
+## Deck Workshop
 
-- Six-card starter: three Ember Blades, two Crystal Wards, one Starlit Focus.
-- Three energy and four cards per turn. Unplayed cards discard; exhausted cards return next battle.
+- The card pool contains every card owned during the run.
+- Build an active deck of 4–10 cards from the pool.
+- Add and remove owned cards freely between battles.
+- Every card has a Base form and three upgrade levels: I, II, and III.
+- Upgrades cost 1, 2, then 3 upgrade materials.
+- Each victory awards 1 upgrade material.
+- Destroying an Impermanent card returns 1 material plus its upgrade level.
+- Soulbound cards may be upgraded, but cannot be destroyed or lost.
+
+## Soulbound drops and card loss
+
+- Every third encounter is a boss.
+- A defeated boss has a strict 10% chance to offer one Soulbound card.
+- Soulbound cards are exclusive to that boss-drop roll and never appear in normal rewards.
+- Defeat can permanently remove one random Impermanent card from the active deck.
+- Soulbound cards are always protected from defeat loss.
+- Defeat does not reduce the active deck below its four-card playable minimum.
+
+## Combat baseline
+
+- Six-card starter pool and active deck: three Ember Blades, two Crystal Wards, one Starlit Focus.
+- Three energy and four cards per turn.
 - 30 player health. First enemy: 42 health and 8 base attack.
-- Every third turn is a telegraphed heavy attack (+4). Attack increases by 1 every two turns.
-- Each successive enemy has 7 more health; base attack increases every two battles.
-- Win to recover 4 health and choose one of three card rewards, or skip.
-- Remove cards between battles, keeping at least six.
-- Defeat ends the run; restarting builds a fresh six-card deck.
+- Every third turn is a telegraphed heavy attack (+4).
+- Enemy health and attack scale with battle number; bosses receive additional health and attack.
+- Wins recover 4 health and offer one of three normal cards, or the player may skip.
 
-Each card has original inline SVG artwork, a cost gem, a title, a type, and rules text. No remote assets or build dependencies are required.
-
-Progress uses `cardbound-battle-lab-v1` localStorage, including the current hand, enemy, and turn. This is separate from adventure saves. No cloud save sync.
+Progress uses `cardbound-battle-lab-v2` localStorage and remains separate from adventure saves.
 
 ## Validation
 
-Offline checks cover damage, energy, block expiry, drawing, exhaustion, enemy escalation, defeat, rewards, and starting a stronger next battle. Difficulty is an initial tuning baseline, not a guarantee for every deck or draw. Browser playtest results are recorded separately as coverage is completed.
+Automated logic checks cover starter pool/deck creation, all three upgrade levels and their costs, material refunds, Impermanent destruction, defeat loss, Soulbound protection, the exact 10% drop boundary, reward ownership, and save writes.
