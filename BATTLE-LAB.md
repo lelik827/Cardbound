@@ -1,6 +1,6 @@
 # Cardbound Battle Lab
 
-Play `arena.html` to work exclusively on card battles. `index.html` retains the open-world adventure.
+Play `arena.html` to work exclusively on card battles. `index.html` now contains the integrated Shattered Wilds adventure using the same card and player-progression systems. A valid Battle Lab v3 save is imported when a new integrated journey begins.
 
 
 ## Player experience and ability unlocks
