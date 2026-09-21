@@ -2,6 +2,18 @@
 
 Play `arena.html` to work exclusively on card battles. `index.html` retains the open-world adventure.
 
+
+## Player experience and ability unlocks
+
+- Players begin at Level 1 with 0/100 XP.
+- A normal victory awards 25 XP.
+- A boss victory awards 50 XP.
+- A defeat still awards 10 XP for completing the encounter.
+- Every 100 XP increases the player level by one.
+- Level 2 unlocks Power Boost: once per encounter, select one eligible card for +1 damage, +1 block, or +1 healing on its next play. The selection may be changed until the card is played.
+- Level 5 unlocks Retain: select one unplayed card per turn to keep it in hand through turn-end. The retained card joins the next four-card draw.
+- Player level, XP, and both ability states persist in the Battle Lab save.
+
 ## Card mastery and upgrades
 
 - Every owned card starts at Level 0 with 0/50 uses.
