@@ -1,31 +1,73 @@
-# Cardbound — Crystalwood Edition
+# Cardbound — Shattered Wilds
 
-A standalone browser card-battle RPG with original retro pixel artwork. Open `index.html` to run; no build step or external game assets are required.
+A standalone browser card-battle exploration RPG. Open `index.html` to play the integrated adventure or `arena.html` to use the combat-only Battle Lab. No build step or remote assets are required.
 
-## Preview status
+## Integrated open world
 
-The core gameplay loop was playtested in desktop Chrome on 2026-09-20 at https://lelik827.github.io/Cardbound/.
+The adventure now uses the same physical-card, mastery, deck, Soulbound, player-level, and ability systems as the Battle Lab.
 
-Verified through normal UI controls: all customization options, repeated card picks/removal/copy cap, Balanced starter, entering the world, directional-pad movement and tree collision, two monster victories, attack/block/mana/draw behavior, reward selection, earned-card removal and re-addition, use of Blood Pact in the second battle, and save/reload with restored name, appearance, XP, gold, and quest progress. No game-origin errors were observed in captured browser logs.
+Exploration is organized as an original connected eleven-room labyrinth:
 
-The playtest found a stale Continue saved adventure control inside character editing; the follow-up fix removes it after adventure entry. Mobile layout, keyboard hold behavior, defeat recovery, and the final boss still need browser testing. Offline logic checks also passed. This remains a preview, not an assurance that every path works.
+- Move with WASD, arrow keys, or the on-screen directional pad.
+- Encounters are visible in the world; collide with an enemy to battle.
+- Rooms connect in multiple directions and support backtracking.
+- The Ember Sigil opens flame seals.
+- Briarstep Boots cross living-thorn routes.
+- The Moon Lens reveals concealed passages.
+- The map records rooms only after they are discovered.
+- Normal enemies respawn after three room transitions; bosses remain defeated.
+- Meadowrest restores health.
+- The Sunken Forge contains a discoverable upgrade material.
+
+This structure takes inspiration from the non-linear exploration principles of early ability-gated adventure games while using original Cardbound locations, layouts, visuals, enemies, characters, and mechanics.
+
+## Unified combat and progression
+
+- Build a 4–10 card active deck from the owned card pool.
+- Every physical card starts at Level 0 and tracks its own uses.
+- Fifty uses plus one open-world upgrade material unlock each of three card levels.
+- Purple Soulbound cards cannot be destroyed or lost.
+- Bronze Impermanent cards may be destroyed and can be lost on defeat.
+- Normal victories award 25 player XP; bosses award 50; defeats award 10.
+- Level 2 unlocks a once-per-encounter Power Boost.
+- Level 3 unlocks encounter-wide Weaken.
+- Level 4 permanently improves either Power Boost or Weaken.
+- Level 5 unlocks one retained card per turn.
+- Bosses have a 10% chance to drop an exclusive Soulbound card.
+- Normal encounters have a 10% material chance; bosses guarantee one material.
+
+## Saves and migration
+
+The integrated adventure saves in browser localStorage under `cardbound-integrated-v1`. Upgrade materials remain shared under `cardbound-upgrade-materials-v1`.
+
+When beginning the integrated adventure for the first time, a valid `cardbound-battle-lab-v3` save is imported automatically, including:
+
+- Card pool and active deck
+- Card levels and mastery uses
+- Player level and XP
+- Level 4 mastery path
+- Soulbound ownership
+
+The older adventure save is used to prefill the adventurer name when available. Saves remain specific to the browser and site origin; there is no cloud synchronization.
+
+## Verification
+
+Automated logic checks cover:
+
+- All eleven rooms and their connections
+- Ember Sigil, Briarstep Boots, and Moon Lens route gates
+- Normal-enemy three-room respawning
+- Integrated physical-card mastery
+- Player XP and Levels 2, 3, and 5 abilities
+- Boss material guarantees and the 10% Soulbound boundary
+- Impermanent defeat loss and Soulbound protection
+- Battle Lab save detection for migration
+- JavaScript syntax and the responsive 800×500 logical world scaling
+
+A full installed-Chromium visual pass was unavailable in the build workspace, so desktop and mobile visual behavior should continue to be checked on the hosted version after deployment.
 
 ## Hosting
 
-In repository Settings → Pages, choose **Deploy from a branch**, **main**, and **/(root)**, then Save. Subsequent changes to the publishing branch will update the site.
+GitHub Pages deploys the repository root from `main`. The live build is available at:
 
-## Saved progress
-
-Progress uses browser localStorage under `cardbound-v2`. Saves are specific to the browser and origin; there is no cloud synchronization. Saves occur outside combat. Moving from a downloaded file to the hosted site does not automatically transfer an existing save.
-
-## Required playtest before marking an update verified
-
-- Exercise every customization category and compare male/female previews with world sprites.
-- Manually pick, remove, and swap cards; check presets, copy limits, and the ten-card starting gate.
-- Enter the world and walk into a monster encounter through normal controls.
-- Play cards, end turns, win, choose a reward, and return to the world.
-- Add an earned card to the deck and complete another battle.
-- Reload and continue the saved adventure; test defeat recovery.
-- Check desktop and mobile layouts and browser errors.
-
-Keep unverified changes clearly labeled until this sequence passes in a real browser.
+https://lelik827.github.io/Cardbound/
