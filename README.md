@@ -14,7 +14,7 @@ Exploration is organized as an original connected eleven-room labyrinth:
 - The Ember Sigil opens flame seals.
 - Briarstep Boots cross living-thorn routes.
 - The Moon Lens reveals concealed passages.
-- The map records rooms only after they are discovered.
+- A persistent lower-right minimap records rooms only after they are discovered, highlights the current area, and shows explored-world progress. The full Map screen remains available for room names and relic details.
 - Normal enemies respawn after three room transitions; bosses remain defeated.
 - Meadowrest restores health.
 - The Sunken Forge contains a discoverable upgrade material.
