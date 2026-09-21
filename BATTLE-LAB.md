@@ -16,6 +16,20 @@ Play `arena.html` to work exclusively on card battles. `index.html` retains the 
 - Level 5 unlocks Retain: select one unplayed card per turn to keep it in hand through turn-end. The retained card joins the next four-card draw.
 - Player level, XP, and both ability states persist in the Battle Lab save.
 
+
+## Character Sheet
+
+The Character button is available from both combat and the Deck Workshop. It opens a non-destructive overlay showing:
+
+- Current player level and progress toward the next 100-XP threshold.
+- Level 2 Power Boost status and its current +1/+2 strength.
+- Level 3 Weaken status and its current -1/-2 strength.
+- The permanent Level 4 mastery choice, or whether that choice is still pending.
+- Level 5 Retain status.
+- Owned-card counts at Levels 0, 1, 2, and 3.
+- Cards that have reached 50/50 uses and are ready to upgrade.
+- Current open-world upgrade materials, Soulbound-card count, and total card-pool size.
+
 ## Card mastery and upgrades
 
 - Every owned card starts at Level 0 with 0/50 uses.
