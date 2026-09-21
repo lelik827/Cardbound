@@ -17,6 +17,19 @@ Play `arena.html` to work exclusively on card battles. `index.html` retains the 
 - Player level, XP, and both ability states persist in the Battle Lab save.
 
 
+
+## Interface and navigation
+
+- Soulbound cards use purple frames, a solid diamond symbol, and a prominent **Soulbound · Protected** banner.
+- Impermanent cards use bronze frames, a hollow diamond symbol, and an **Impermanent · At Risk** banner.
+- Every card displays three upgrade pips and a proportional 0–50 mastery bar.
+- Cards at 50/50 use a highlighted **Ready to Upgrade** state.
+- The Deck Workshop includes filters for All, Active Deck, Soulbound, Impermanent, and Upgrade Ready cards.
+- Active-deck cards receive a blue outline and also appear in a compact deck list.
+- Add/remove, upgrade, destroy, Power Boost, Retain, and Weaken controls have distinct labels and visual treatments.
+- The sticky status bar keeps battle, level/XP, health, deck size, world materials, and Character Sheet access visible.
+- The Character Sheet uses an XP bar and separates Soulbound and Impermanent collection totals.
+
 ## Character Sheet
 
 The Character button is available from both combat and the Deck Workshop. It opens a non-destructive overlay showing:
