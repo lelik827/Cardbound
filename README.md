@@ -21,6 +21,27 @@ Exploration is organized as an original connected eleven-room labyrinth:
 
 This structure takes inspiration from the non-linear exploration principles of early ability-gated adventure games while using original Cardbound locations, layouts, visuals, enemies, characters, and mechanics.
 
+
+## Visual direction
+
+The integrated world uses an original colorful fantasy-steampunk style:
+
+- Brass and copper pipes, riveted machinery, animated gears, and teal steam lighting.
+- Distinct saturated palettes for forests, ember chambers, flooded crypts, moon vaults, forges, and the Warden depths.
+- A goggle-and-mechanical-backpack treatment for the player sprite.
+- Ten unique inline-vector monster designs displayed in both exploration and combat:
+  - Ember-jawed Ashfang Scout
+  - Plant-bodied Thornling
+  - Armored Briar Guardian
+  - Drill-snouted Root Burrower
+  - Crescent-armored Moonbound Knight
+  - Spectral Underroot Shade
+  - Gear-cored Crypt Wisp
+  - Furnace-bodied Forge Beast
+  - Crowned floating eye
+  - Vine-and-brass Thorn Warden
+- All artwork is original, dependency-free, and stored directly in the game file.
+
 ## Unified combat and progression
 
 - Build a 4–10 card active deck from the owned card pool.
