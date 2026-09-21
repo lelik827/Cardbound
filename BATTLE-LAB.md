@@ -36,8 +36,10 @@ Play `arena.html` to work exclusively on card battles. `index.html` retains the 
 - Defeat can permanently remove one random Impermanent card from the active deck.
 - Defeat does not reduce the active deck below its four-card playable minimum.
 
-Progress uses `cardbound-battle-lab-v2` localStorage and remains separate from adventure saves, while the upgrade-material balance is shared between both modes.
+Progress uses `cardbound-battle-lab-v3` localStorage and remains separate from adventure saves, while the upgrade-material balance is shared between both modes.
 
 ## Validation
 
 Automated checks cover Level 0 initialization, the 49/50-use boundary, the 50th-use ready state, blocking upgrades without a world material, material consumption, progress reset after upgrading, Level 0 rewards, and destruction without material creation.
+
+The v3 mastery system starts a fresh Battle Lab run so every card begins at Level 0; the shared open-world material balance is preserved.
