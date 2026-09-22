@@ -9,7 +9,7 @@ const NeonCity=(()=>{
  atlas.onerror=()=>{if(current)current.world.querySelector('.city-status').textContent='Art download failed — refresh to retry'};
  atlas.src='assets/environment/neon-city.webp';
  const hash=key=>[...key].reduce((a,c)=>a*31+c.charCodeAt(0),17)>>>0;
- function configure(rooms){Object.entries(places).forEach(([key,[name,district,landmark]],i)=>{const r=rooms[key];r.name=name;r.district=district;r.landmark=landmark;r.cityIndex=i;r.restPoint=[440,325];if(r.enemy){const spots=[[500,250],[400,185],[300,250],[400,350]];[r.enemy[1],r.enemy[2]]=spots[i%4]}if(r.relic){r.relic[3]=400;r.relic[4]=110}})}
+ function configure(rooms){Object.entries(places).forEach(([key,[name,district,landmark]],i)=>{const r=rooms[key];r.name=name;r.district=district;r.landmark=landmark;r.cityIndex=i;r.restPoint=[440,325];if(r.enemy){const spots=[[500,250],[400,185],[300,250],[400,350]];[r.enemy[1],r.enemy[2]]=spots[i%4]}if(r.relic){[r.relic[3],r.relic[4]]=r.relic[0]==='material'?[690,285]:[400,110]}})}
  // Solid corner blocks use the same street envelope in every district.
  function props(key){const i=hash(key)%4;return i===0?[[198,206,38,24],[557,282,32,18]]:i===1?[[248,287,42,16]]:i===2?[[541,205,35,21],[198,281,36,20]]:[[190,203,36,19]]}
  function solids(key){return [[0,0,292,157],[500,0,300,157],[0,322,292,178],[500,322,300,178],...props(key)]}
