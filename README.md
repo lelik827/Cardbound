@@ -29,17 +29,17 @@ The integrated world uses an original colorful fantasy-steampunk style:
 - Brass and copper pipes, riveted machinery, animated gears, and teal steam lighting.
 - Distinct saturated palettes for forests, ember chambers, flooded crypts, moon vaults, forges, and the Warden depths.
 - A goggle-and-mechanical-backpack treatment for the player sprite.
-- Ten unique inline-vector monster designs displayed in both exploration and combat:
-  - Ember-jawed Ashfang Scout
-  - Plant-bodied Thornling
-  - Armored Briar Guardian
-  - Drill-snouted Root Burrower
-  - Crescent-armored Moonbound Knight
-  - Spectral Underroot Shade
-  - Gear-cored Crypt Wisp
-  - Furnace-bodied Forge Beast
-  - Crowned floating eye
-  - Vine-and-brass Thorn Warden
+- Ten detailed pixel-art cyber-monsters displayed in both exploration and combat:
+  - Plasma-jawed Ember Jackal
+  - Crystal-tipped Circuit Thornling
+  - Armored bio-mech Briar Sentinel
+  - Drill-snouted Tunnel Borehound
+  - Crescent-armored Lunar Enforcer
+  - Holographic Phase Shade
+  - Ringed Data Wisp
+  - Furnace-bodied Reactor Mauler
+  - Crowned surveillance Observer
+  - Vine-cabled Thorn Warden
 - All artwork is original, dependency-free, and stored directly in the game file.
 
 ## Unified combat and progression
