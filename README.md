@@ -16,7 +16,7 @@ Exploration is organized as an original connected eleven-room labyrinth:
 - The Moon Lens reveals concealed passages.
 - A persistent lower-right minimap records rooms only after they are discovered, highlights the current area, and shows explored-world progress. The full Map screen remains available for room names and relic details.
 - Normal enemies respawn after three room transitions; bosses remain defeated.
-- Meadowrest restores health.
+- Healing stations have been removed; defeated monsters have a 30% chance to drop a small healing potion.
 - The Sunken Forge contains a discoverable upgrade material.
 
 This structure takes inspiration from the non-linear exploration principles of early ability-gated adventure games while using original Cardbound locations, layouts, visuals, enemies, characters, and mechanics.
@@ -44,32 +44,23 @@ The integrated world uses an original colorful fantasy-steampunk style:
 
 ## Unified combat and progression
 
-- Build a 4–10 card active deck from the owned card pool.
+- Build a 4–6 card active deck from the owned card pool, then invest in Deck Matrix to reach ten cards.
+- Decks allow three copies of a card by default; Pattern Replication raises the limit to five.
 - Every physical card starts at Level 0 and tracks its own uses.
 - Fifty uses plus one open-world upgrade material unlock each of three card levels.
 - Purple Soulbound cards cannot be destroyed or lost.
-- Bronze Impermanent cards may be destroyed and can be lost on defeat.
+- Every defeat destroys one random active Impermanent card; Soulbound boss cards are always protected.
 - Normal victories award 25 player XP; bosses award 50; defeats award 10.
 - Player progression now spans Levels 1–30, with one talent point earned at every level from 2 onward.
-- The three-branch Neural Talent Matrix offers ranked, incremental card-battle upgrades: Surge improves offense and Power Boost, Disruption improves Weaken, draw, and energy, and Resolve improves Retain, Block, health, and recovery.
+- The three-branch Neural Talent Matrix offers ranked, incremental card-battle upgrades: Surge improves offense and Power Boost, Disruption improves Weaken, draw, energy, deck capacity, and copy limits, and Resolve improves Retain, Block, health, and potion strength.
 - Deeper talent rows require points invested in that branch, with capstone upgrades available after ten branch points.
 - Talent choices can be freely recompiled outside active encounters, making it practical to test different builds.
 - Bosses have a 10% chance to drop an exclusive Soulbound card.
 - Normal encounters have a 10% material chance; bosses guarantee one material.
 
-## Saves and migration
+## Saves
 
-The integrated adventure saves in browser localStorage under `cardbound-integrated-v1`. Upgrade materials remain shared under `cardbound-upgrade-materials-v1`.
-
-When beginning the integrated adventure for the first time, a valid `cardbound-battle-lab-v3` save is imported automatically, including:
-
-- Card pool and active deck
-- Card levels and mastery uses
-- Player level and XP
-- Player talents (or an empty tree when importing an older Battle Lab save)
-- Soulbound ownership
-
-The older adventure save is used to prefill the adventurer name when available. Saves remain specific to the browser and site origin; there is no cloud synchronization.
+This balance update starts a fresh save. The integrated adventure uses `cardbound-integrated-v2`, the Battle Lab uses `cardbound-battle-lab-v4`, and shared upgrade materials use `cardbound-upgrade-materials-v2`. Saves remain specific to the browser and site origin; there is no cloud synchronization.
 
 ## Verification
 
@@ -79,10 +70,10 @@ Automated logic checks cover:
 - Ember Sigil, Briarstep Boots, and Moon Lens route gates
 - Normal-enemy three-room respawning
 - Integrated physical-card mastery
-- Player XP, the Level 30 cap, talent points, branch gates, prerequisites, and derived combat bonuses
+- Player XP, the Level 30 cap, talent points, branch gates, deck capacity, copy limits, and derived combat bonuses
 - Boss material guarantees and the 10% Soulbound boundary
 - Impermanent defeat loss and Soulbound protection
-- Battle Lab save detection for migration
+- Healing-potion drops and fresh-save initialization
 - JavaScript syntax and the responsive 800×500 logical world scaling
 
 A full installed-Chromium visual pass was unavailable in the build workspace, so desktop and mobile visual behavior should continue to be checked on the hosted version after deployment.
