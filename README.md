@@ -50,10 +50,10 @@ The integrated world uses an original colorful fantasy-steampunk style:
 - Purple Soulbound cards cannot be destroyed or lost.
 - Bronze Impermanent cards may be destroyed and can be lost on defeat.
 - Normal victories award 25 player XP; bosses award 50; defeats award 10.
-- Level 2 unlocks a once-per-encounter Power Boost.
-- Level 3 unlocks encounter-wide Weaken.
-- Level 4 permanently improves either Power Boost or Weaken.
-- Level 5 unlocks one retained card per turn.
+- Player progression now spans Levels 1–30, with one talent point earned at every level from 2 onward.
+- The three-branch Neural Talent Matrix offers ranked, incremental card-battle upgrades: Surge improves offense and Power Boost, Disruption improves Weaken, draw, and energy, and Resolve improves Retain, Block, health, and recovery.
+- Deeper talent rows require points invested in that branch, with capstone upgrades available after ten branch points.
+- Talent choices can be freely recompiled outside active encounters, making it practical to test different builds.
 - Bosses have a 10% chance to drop an exclusive Soulbound card.
 - Normal encounters have a 10% material chance; bosses guarantee one material.
 
@@ -66,7 +66,7 @@ When beginning the integrated adventure for the first time, a valid `cardbound-b
 - Card pool and active deck
 - Card levels and mastery uses
 - Player level and XP
-- Level 4 mastery path
+- Player talents (or an empty tree when importing an older Battle Lab save)
 - Soulbound ownership
 
 The older adventure save is used to prefill the adventurer name when available. Saves remain specific to the browser and site origin; there is no cloud synchronization.
@@ -79,7 +79,7 @@ Automated logic checks cover:
 - Ember Sigil, Briarstep Boots, and Moon Lens route gates
 - Normal-enemy three-room respawning
 - Integrated physical-card mastery
-- Player XP and Levels 2, 3, and 5 abilities
+- Player XP, the Level 30 cap, talent points, branch gates, prerequisites, and derived combat bonuses
 - Boss material guarantees and the 10% Soulbound boundary
 - Impermanent defeat loss and Soulbound protection
 - Battle Lab save detection for migration
@@ -91,4 +91,4 @@ A full installed-Chromium visual pass was unavailable in the build workspace, so
 
 GitHub Pages deploys the repository root from `main`. The live build is available at:
 
-https://lelik827.github.io/Cardbound/
+https://achubu.github.io/Cardbound/
