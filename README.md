@@ -1,5 +1,9 @@
 # Cardbound — Shattered Wilds
 
+## Current main-adventure build: Elaris / Aetherlink
+
+The main adventure includes irregular seeded rooms, independent multi-enemy patrols, secret potion caches, level-up healing and maximum HP, expanded talents, an upgradeable wrist device, elemental cards/counters, a boss portal to Elaris, and save-file export/import. See [EXPANSION.md](EXPANSION.md) for current rules and test instructions. The sections below describe the earlier base game; `arena.html` remains the earlier isolated prototype.
+
 A standalone browser card-battle exploration RPG. Open `index.html` to play the integrated adventure or `arena.html` to use the combat-only Battle Lab. No build step or remote assets are required.
 
 ## Integrated open world
