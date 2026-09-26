@@ -10,6 +10,7 @@ Exploration is organized as an original connected eleven-room labyrinth:
 
 - Move with WASD, arrow keys, or the on-screen directional pad.
 - Encounters are visible in the world; collide with an enemy to battle.
+- Enemies slowly patrol their spawn area with animated movement and can initiate an encounter if they reach the player.
 - Rooms connect in multiple directions and support backtracking.
 - The Ember Sigil opens flame seals.
 - Briarstep Boots cross living-thorn routes.
